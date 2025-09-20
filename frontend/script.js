@@ -1,3 +1,4 @@
+// Recording Timer Functions
 function startRecordingTimer() {
     recordingTimer = setInterval(() => {
         const elapsed = Date.now() - recordingStartTime;
@@ -18,6 +19,7 @@ function stopRecordingTimer() {
     recordingTime.textContent = '00:00';
 }
 
+// Download All Recordings
 async function downloadAllRecordings() {
     try {
         const recordings = await getAllRecordings();
@@ -26,16 +28,19 @@ async function downloadAllRecordings() {
             showNotification('No recordings found to download.', 'info');
             return;
         }
-    
+        
+        // If we have IndexedDB recordings, create a zip
         if (recordings.length > 0) {
             await downloadRecordingsAsZip(recordings);
         } else if (window.lastRecording) {
+            // Fallback: download the current session recording
             downloadAudioFile(window.lastRecording.blob, window.lastRecording.filename);
         }
         
     } catch (error) {
         console.error('Error downloading recordings:', error);
-    
+        
+        // Final fallback: download the last recording if available
         if (window.lastRecording) {
             downloadAudioFile(window.lastRecording.blob, window.lastRecording.filename);
             showNotification('Downloaded current recording.', 'success');
@@ -300,11 +305,15 @@ const responseArea = document.getElementById('responseArea');
 // State
 let isRecording = false;
 let recognition;
-let mediaRecorder;
 let recordingTimeout;
-let audioChunks = [];
-let audioStream;
 
+// Dual capture variables for both speech recognition AND audio recording
+let mediaStreamForQuery = null;
+let mediaRecorderForQuery = null;
+let mediaChunksForQuery = [];
+let currentAudioFormat = null;
+
+// Initialize Speech Recognition
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
@@ -313,6 +322,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognition.lang = 'en-US';
 }
 
+// Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     addScrollEffects();
@@ -406,17 +416,97 @@ function processFile(file) {
     }, 3000);
 }
 
-// Voice Recording Functions
-function toggleVoiceRecording() {
-    if (!recognition) {
-        showNotification('Speech recognition not supported in this browser.', 'error');
-        return;
-    }
+// --- Minimal helpers that were missing ---
+function downloadAudioFile(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; 
+    a.download = filename;
+    document.body.appendChild(a); 
+    a.click();
+    URL.revokeObjectURL(url); 
+    a.remove();
+    showNotification(`Voice recording saved: ${filename}`, 'success');
+}
 
-    if (isRecording) {
-        stopRecording();
+async function uploadAudioToServer(blob, filename) {
+    // Replace with your real endpoint
+    const form = new FormData();
+    form.append('file', blob, filename);
+    try {
+        const res = await fetch('/api/upload', { method: 'POST', body: form });
+        return res.ok;
+    } catch (error) {
+        console.error('Upload failed:', error);
+        return false;
+    }
+}
+
+function storeAudioFile(blob, filename) {
+    window.lastRecording = { blob, filename, size: blob.size };
+}
+
+async function getAllRecordings() {
+    // Simple in-memory example
+    return window.lastRecording ? [{ audioData: window.lastRecording.blob, filename: window.lastRecording.filename }] : [];
+}
+
+// Audio format detection
+function getAudioFormat() {
+    if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        return { mimeType: 'audio/webm;codecs=opus', extension: 'webm' };
+    } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+        return { mimeType: 'audio/webm', extension: 'webm' };
+    } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        return { mimeType: 'audio/mp4', extension: 'm4a' };
+    } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+        return { mimeType: 'audio/ogg;codecs=opus', extension: 'ogg' };
     } else {
-        startRecording();
+        return { mimeType: 'audio/wav', extension: 'wav' };
+    }
+}
+
+// Dual capture: both speech recognition AND audio recording
+async function startDualCapture() {
+    // Start MediaRecorder to capture the user's question as a file
+    mediaStreamForQuery = await navigator.mediaDevices.getUserMedia({
+        audio: { 
+            echoCancellation: true, 
+            noiseSuppression: true, 
+            channelCount: 1, 
+            sampleRate: 44100 
+        }
+    });
+    
+    currentAudioFormat = getAudioFormat();
+    mediaRecorderForQuery = new MediaRecorder(mediaStreamForQuery, { 
+        mimeType: currentAudioFormat.mimeType 
+    });
+    
+    mediaChunksForQuery = [];
+    
+    mediaRecorderForQuery.ondataavailable = e => { 
+        if (e.data.size) mediaChunksForQuery.push(e.data); 
+    };
+    
+    mediaRecorderForQuery.onstop = () => {
+        const blob = new Blob(mediaChunksForQuery, { type: currentAudioFormat.mimeType });
+        const ts = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `voice-query-${ts}.${currentAudioFormat.extension}`;
+        storeAudioFile(blob, filename); // sets window.lastRecording
+        downloadAudioFile(blob, filename); // auto-download
+    };
+    
+    mediaRecorderForQuery.start(); // start capturing while SpeechRecognition runs
+}
+
+function stopDualCapture() {
+    if (mediaRecorderForQuery && mediaRecorderForQuery.state !== 'inactive') {
+        mediaRecorderForQuery.stop();
+    }
+    if (mediaStreamForQuery) {
+        mediaStreamForQuery.getTracks().forEach(t => t.stop());
+        mediaStreamForQuery = null;
     }
 }
 
@@ -501,10 +591,43 @@ function showResponse(query) {
     videoPlaceholder.style.background = 'rgba(255, 181, 167, 0.05)';
 }
 
-// Utility Functions
-function scrollToVoiceSection() {
-    const voiceSection = document.getElementById('voiceSection');
-    voiceSection.scrollIntoView({ behavior: 'smooth' });
+// Simulate AI thinking for voice queries
+function simulateAIThinking() {
+    voiceBtn.classList.add('processing');
+    voiceStatus.textContent = 'Processing...';
+    
+    queryDisplay.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--primary-matcha);">
+            <i class="fas fa-brain"></i>
+            <span>AI is analyzing your question...</span>
+            <div class="loading-dots">
+                <span>.</span><span>.</span><span>.</span>
+            </div>
+        </div>
+    `;
+}
+
+function displayVideoResults(results) {
+    // Display the video segments returned by Twelve Labs
+    responseArea.style.display = 'block';
+    responseArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    const responseText = document.querySelector('.response-text p');
+    responseText.textContent = results.answer || "Based on your question, here's what your doctor said during the visit.";
+    
+    // If there's a video segment, display it
+    if (results.videoSegment) {
+        const videoPlaceholder = document.querySelector('.video-placeholder');
+        videoPlaceholder.innerHTML = `
+            <video controls style="width: 100%; max-width: 400px; border-radius: 10px;">
+                <source src="${results.videoSegment.url}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <p style="margin-top: 1rem;">Segment: ${results.videoSegment.startTime} - ${results.videoSegment.endTime}</p>
+        `;
+        videoPlaceholder.style.borderColor = 'var(--primary-matcha)';
+        videoPlaceholder.style.background = 'rgba(136, 201, 153, 0.05)';
+    }
 }
 
 function showNotification(message, type = 'info') {
