@@ -1,5 +1,8 @@
 from google import genai
 from pydantic import BaseModel
+import requests
+import dotenv
+import os
 
 def genquiz(payload: str):
     class Question(BaseModel):
@@ -10,7 +13,7 @@ def genquiz(payload: str):
     class Quiz(BaseModel):
         quiz: list[Question]
 
-    client = genai.Client()
+    client = genai.Client() # Uses the GEMINI_API_KEY env var
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents="Generate a 5 question quiz about important information to remember from the following telehealth transcript. The patient will be taking the quiz. " + payload,
@@ -31,6 +34,41 @@ app = Flask(__name__)
 from flask_cors import CORS
 CORS(app)  # Enable CORS for all routes
 
+@app.route('/dark/transcript', methods=['GET'])
+def gettranscript():
+    try:
+        video = request.args.get('v')
+        index = request.args.get('i')
+    except:
+        video = None
+        index = None
+
+    if video is None or index is None:
+        return {"error": "Missing video-id or index-id"}
+
+    # Else run processing
+    url = f'https://api.twelvelabs.io/v1.3/indexes/{index}/videos/{video}'
+    querystring = {"transcription": "true"}
+
+    dotenv.load_dotenv()
+    TWELEVELABS_API_KEY = os.getenv('TWELEVELABS_API_KEY')
+    headers = {"x-api-key": TWELEVELABS_API_KEY}
+
+    response = requests.get(url, headers=headers, params=querystring)
+
+    transcription = response.json()['transcription']
+    transcript = ""
+    for i in transcription:
+        if " " in i['value']:
+            transcript += i['value']
+        else:
+            transcript += " " + i['value']
+
+    json_transcript = {"transcript": transcript}
+    print(json_transcript)
+    return json_transcript
+
+
 @app.route('/dark/quiz', methods=['POST'])
 def sendquiz():
     try:
@@ -39,7 +77,7 @@ def sendquiz():
         hsp = None
 
     json_data = request.get_json(silent=True)
-    payload = json_data.get('transcript') if json_data else None
+    payload = json_data.get('transcription') if json_data else None
 
     try:
         hsp_header = request.headers.get('X-HSP-Header')

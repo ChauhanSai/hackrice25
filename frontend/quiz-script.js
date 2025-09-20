@@ -1,28 +1,36 @@
-// Quiz data
-let quizQuestions;
-const url = "http://127.0.0.1:5001/dark/quiz?hsp=test";
+// Get video transcription
+const video = "68cecac9ca672ec899e15fe7";
+const index = "68cecab1c81f4a8a93031f29";
+
+const url1 = "http://127.0.0.1:5001/dark/transcript?v=" + video + "&i=" + index;
+const url2 = "http://127.0.0.1:5001/dark/quiz?hsp=Family+Medical";
 
 const headers = {
-  "X-HSP-Header": "test",
+  "X-HSP-Header": "Family Medical",
   "Content-Type": "application/json"
 };
 
-const body = {
-  transcript: "Hi Mr petrol I’m Unice I’m one of the nurses helping out at the hospital ..."
-};
+let quizQuestions;
 
-fetch(url, {
-  method: "POST",
-  headers,
-  body: JSON.stringify(body)
-})
+fetch(url1)
   .then(response => response.json())
   .then(data => {
-    console.log(JSON.parse(data));
-    console.log(JSON.parse(data)[0].quiz);
-    quizQuestions = JSON.parse(data)[0].quiz; // use it here
-    // e.g., call a function to render your quiz
-    // Initialize Quiz
+    console.log("Transcript:", data);
+    const transcript = data.transcript;
+
+    // Quiz questions
+    return fetch(url2, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ transcription: transcript })
+    });
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log("Quiz:", data);
+    quizQuestions = data[0].quiz; // no need for JSON.parse if server already returns JSON
+
+    // Initialize quiz once we have the data
     initializeQuiz();
     setupEventListeners();
   })
