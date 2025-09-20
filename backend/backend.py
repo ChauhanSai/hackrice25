@@ -45,8 +45,9 @@ CORS(app)  # Enable CORS for all routes
 @app.route('/pegasus', methods = ['POST'])
 def getResponse():
     try:
-        query = request.args.get('query')
-        vid_id = request.args.get('video_id')
+        json_data = request.get_json()
+        query = json_data.get('query') if json_data else None
+        vid_id = json_data.get('video_id') if json_data else None
     except:
         query = None
         vid_id = None
