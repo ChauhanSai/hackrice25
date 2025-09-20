@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>telehealth</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="quiz-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="dark-mode">
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-heartbeat"></i>
+                <span>namename</span>
+            </div>
+            <div class="nav-actions">
+                <button class="back-btn" onclick="window.location.href='index.html'">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Main</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="quiz-header">
+        <div class="container">
+            <h1>Memory Assessment Quiz</h1>
+            <p>Test your recall of medical information with our interactive quiz system</p>
+            <div class="quiz-stats">
+                <div class="stat">
+                    <span class="stat-number" id="currentQuestion">1</span>
+                    <span class="stat-label">Question</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" id="totalQuestions">5</span>
+                    <span class="stat-label">Total</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" id="score">0</span>
+                    <span class="stat-label">Score</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="quiz-section">
+        <div class="container">
+            <div class="quiz-container">
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">Question 1 of 5</span>
+                </div>
+                <div class="question-card" id="questionCard">
+                    <div class="question-header">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Medical Information Recall</span>
+                    </div>
+                    <div class="question-content">
+                        <h3 id="questionText">What medication did your doctor prescribe for your blood pressure?</h3>
+                        <div class="options" id="optionsContainer">
+                            <button class="option-btn" data-answer="a">
+                                <span class="option-letter">A</span>
+                                <span class="option-text">Lisinopril 10mg</span>
+                            </button>
+                            <button class="option-btn" data-answer="b">
+                                <span class="option-letter">B</span>
+                                <span class="option-text">Metformin 500mg</span>
+                            </button>
+                            <button class="option-btn" data-answer="c">
+                                <span class="option-letter">C</span>
+                                <span class="option-text">Aspirin 81mg</span>
+                            </button>
+                            <button class="option-btn" data-answer="d">
+                                <span class="option-letter">D</span>
+                                <span class="option-text">Atorvastatin 20mg</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="question-actions">
+                        <button class="hint-btn" id="hintBtn">
+                            <i class="fas fa-lightbulb"></i>
+                            Get Hint
+                        </button>
+                        <button class="next-btn" id="nextBtn" disabled>
+                            Next Question
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hint Card -->
+                <div class="hint-card" id="hintCard" style="display: none;">
+                    <div class="hint-header">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Hint from your visit</span>
+                    </div>
+                    <div class="hint-content">
+                        <div class="video-segment">
+                            <i class="fas fa-play-circle"></i>
+                            <p>Video segment from 12:30 - "I'm prescribing Lisinopril for your blood pressure..."</p>
+                        </div>
+                        <p class="hint-text">Your doctor mentioned this medication helps with cardiovascular health.</p>
+                    </div>
+                </div>
+
+                <!-- Results Card -->
+                <div class="results-card" id="resultsCard" style="display: none;">
+                    <div class="results-header">
+                        <i class="fas fa-trophy"></i>
+                        <span>Quiz Complete!</span>
+                    </div>
+                    <div class="results-content">
+                        <div class="final-score">
+                            <span class="score-number" id="finalScore">0</span>
+                            <span class="score-total">/ 5</span>
+                        </div>
+                        <div class="score-message" id="scoreMessage">Great job!</div>
+                        <div class="results-breakdown">
+                            <div class="breakdown-item">
+                                <i class="fas fa-check-circle correct"></i>
+                                <span>Correct Answers: <strong id="correctCount">0</strong></span>
+                            </div>
+                            <div class="breakdown-item">
+                                <i class="fas fa-times-circle incorrect"></i>
+                                <span>Incorrect Answers: <strong id="incorrectCount">0</strong></span>
+                            </div>
+                            <div class="breakdown-item">
+                                <i class="fas fa-lightbulb"></i>
+                                <span>Hints Used: <strong id="hintsUsed">0</strong></span>
+                            </div>
+                        </div>
+                        <div class="results-actions">
+                            <button class="retry-btn" onclick="restartQuiz()">
+                                <i class="fas fa-redo"></i>
+                                Try Again
+                            </button>
+                            <button class="home-btn" onclick="window.location.href='index.html'">
+                                <i class="fas fa-home"></i>
+                                Back to Home
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="features-dark">
+        <div class="container">
+            <h2>Why Memory Quizzes Help</h2>
+            <div class="features-grid">
+                <div class="feature-card-dark">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Reinforcement Learning</h3>
+                    <p>Repeated testing helps strengthen memory pathways and improves long-term retention of medical information.</p>
+                </div>
+                <div class="feature-card-dark">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Progress Tracking</h3>
+                    <p>Monitor your improvement over time and identify areas where you need additional review.</p>
+                </div>
+                <div class="feature-card-dark">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Spaced Repetition</h3>
+                    <p>Scientifically-proven method to optimize when and how often you review important health information.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="quiz-script.js"></script>
+</body>
+</html>
