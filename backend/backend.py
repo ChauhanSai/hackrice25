@@ -4,7 +4,6 @@ from twelvelabs import TwelveLabs, core
 import os
 from twelvelabs.tasks import TasksRetrieveResponse
 from dotenv import load_dotenv
-
 load_dotenv()
 
 client = TwelveLabs(api_key=os.getenv('TWELVELABS_API_KEY'))
@@ -18,7 +17,7 @@ def genquiz(payload: str):
     class Quiz(BaseModel):
         quiz: list[Question]
 
-    client = genai.Client()
+    client = genai.Client() # Uses the GEMINI_API_KEY env var
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents="Generate a 5 question quiz about important information to remember from the following telehealth transcript. The patient will be taking the quiz. " + payload,
@@ -68,7 +67,7 @@ def sendquiz():
         hsp = None
 
     json_data = request.get_json(silent=True)
-    payload = json_data.get('transcript') if json_data else None
+    payload = json_data.get('transcription') if json_data else None
 
     try:
         hsp_header = request.headers.get('X-HSP-Header')
