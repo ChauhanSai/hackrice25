@@ -1,11 +1,6 @@
-import requests
-import dotenv
+
 from google import genai
 from pydantic import BaseModel
-
-dotenv.load_dotenv()
-import os
-API_KEY = os.getenv('GEMINI_API_KEY')
 
 def genquiz(payload: str):
     class Question(BaseModel):
@@ -19,7 +14,7 @@ def genquiz(payload: str):
     client = genai.Client()
     response = client.models.generate_content(
         model="gemini-2.5-flash",
-        contents="Generate a 5 question quiz about important information to remember from the following telehealth transcript. " + payload,
+        contents="Generate a 5 question quiz about important information to remember from the following telehealth transcript. The patient will be taking the quiz. " + payload,
         config={
             "response_mime_type": "application/json",
             "response_schema": list[Quiz],
