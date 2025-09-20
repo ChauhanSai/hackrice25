@@ -11,144 +11,209 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <i class="fas fa-heartbeat"></i>
-                <span>jit</span>
-            </div>
-            <div class="nav-actions">
-                <button class="moon-toggle" id="moonToggle">
-                    <i class="fas fa-moon"></i>
-                    <span>Dark Mode</span>
-                </button>
-            </div>
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo">
+            <i class="fas fa-heartbeat"></i>
+            <span>jit</span>
         </div>
-    </nav>
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1>Never Miss Important Medical Information Again</h1>
-                <p class="hero-subtitle">AI-powered telehealth assistant that helps you remember and understand your doctor visits through intelligent voice queries and video analysis.</p>
-                <div class="hero-actions">
-                    <button class="btn-primary" id="uploadBtn">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        Upload Your Visit Recording
-                    </button>
-                    <button class="btn-secondary">
-                        <i class="fas fa-play-circle"></i>
-                        Watch Demo
-                    </button>
-                </div>
-            </div>
-            <div class="hero-visual">
-                <div class="floating-card">
-                    <i class="fas fa-video"></i>
-                    <span>Telehealth Recording</span>
-                </div>
-                <div class="floating-card delay-1">
-                    <i class="fas fa-microphone"></i>
-                    <span>Voice Query</span>
-                </div>
-                <div class="floating-card delay-2">
-                    <i class="fas fa-brain"></i>
-                    <span>AI Analysis</span>
-                </div>
-            </div>
+        <div class="nav-actions">
+            <button class="moon-toggle" id="moonToggle">
+                <i class="fas fa-moon"></i>
+                <span>Dark Mode</span>
+            </button>
         </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="features">
-        <div class="container">
-            <h2>How It Works</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-upload"></i>
-                    </div>
-                    <h3>Upload Recording</h3>
-                    <p>Doctors share your telehealth visit recording with our secure platform for processing.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-comments"></i>
-                    </div>
-                    <h3>Ask Questions</h3>
-                    <p>Simply speak your question about prescriptions, symptoms, or treatment instructions.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <h3>Get Instant Answers</h3>
-                    <p>Our AI finds the exact moment in your visit and provides clear, relevant information.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-    <section class="voice-query" id="voiceSection">
-        <div class="container">
-            <div class="voice-interface">
-                <h2>Ask About Your Visit</h2>
-                <p>Click the microphone and ask questions about your recent telehealth appointment</p>
-                
-                <div class="voice-controls">
-                    <button class="voice-btn" id="voiceBtn">
-                        <i class="fas fa-microphone" id="micIcon"></i>
-                        <span id="voiceStatus">Click to speak</span>
-                    </button>
-                </div>
-                
-                <div class="query-display" id="queryDisplay">
-                    <p>Your question will appear here...</p>
-                </div>
-                
-                <div class="response-area" id="responseArea" style="display: none;">
-                    <div class="response-card">
-                        <div class="response-header">
-                            <i class="fas fa-video"></i>
-                            <span>Found in your visit</span>
-                        </div>
-                        <div class="video-placeholder">
-                            <i class="fas fa-play-circle"></i>
-                            <p>Video segment will play here</p>
-                        </div>
-                        <div class="response-text">
-                            <p>Based on your question, here's what your doctor said...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Upload Modal -->
-    <div class="modal" id="uploadModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Upload Visit Recording</h3>
-                <button class="modal-close" id="closeModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="upload-area" id="uploadArea">
+    </div>
+</nav>
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Never Miss Important Medical Information Again</h1>
+            <p class="hero-subtitle">AI-powered telehealth assistant that helps you remember and understand your doctor
+                visits through intelligent voice queries and video analysis.</p>
+            <div class="hero-actions">
+                <button class="btn-primary" id="uploadBtn">
                     <i class="fas fa-cloud-upload-alt"></i>
-                    <h4>Drag and drop your recording here</h4>
-                    <p>Or click to browse files</p>
-                    <input type="file" id="fileInput" accept="video/*,audio/*" hidden>
+                    Upload Your Visit Recording
+                </button>
+                <button class="btn-secondary">
+                    <i class="fas fa-play-circle"></i>
+                    Watch Demo
+                </button>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="floating-card">
+                <i class="fas fa-video"></i>
+                <span>Telehealth Recording</span>
+            </div>
+            <div class="floating-card delay-1">
+                <i class="fas fa-microphone"></i>
+                <span>Voice Query</span>
+            </div>
+            <div class="floating-card delay-2">
+                <i class="fas fa-brain"></i>
+                <span>AI Analysis</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features">
+    <div class="container">
+        <h2>How It Works</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-upload"></i>
                 </div>
-                <div class="upload-progress" id="uploadProgress" style="display: none;">
-                    <div class="progress-bar">
-                        <div class="progress-fill"></div>
+                <h3>Upload Recording</h3>
+                <p>Doctors share your telehealth visit recording with our secure platform for processing.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3>Ask Questions</h3>
+                <p>Simply speak your question about prescriptions, symptoms, or treatment instructions.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>Get Instant Answers</h3>
+                <p>Our AI finds the exact moment in your visit and provides clear, relevant information.</p>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="voice-query" id="voiceSection">
+    <div class="container">
+        <div class="voice-interface">
+            <h2>Ask About Your Visit</h2>
+            <p>Click the microphone and ask questions about your recent telehealth appointment</p>
+
+            <div class="voice-controls">
+                <button class="voice-btn" id="voiceBtn">
+                    <i class="fas fa-microphone" id="micIcon"></i>
+                    <span id="voiceStatus">Click to speak</span>
+                </button>
+            </div>
+
+            <div class="query-display" id="queryDisplay">
+                <p>Your question will appear here...</p>
+            </div>
+
+            <script>
+                const voiceBtn = document.getElementById("voiceBtn");
+                const micIcon = document.getElementById("micIcon");
+                const voiceStatus = document.getElementById("voiceStatus");
+                const queryDisplay = document.getElementById("queryDisplay");
+
+                let recognition;
+                let listening = false;
+                let transcript = "";
+
+                // Browser support check
+                if ("webkitSpeechRecognition" in window) {
+                  recognition = new webkitSpeechRecognition();
+                } else if ("SpeechRecognition" in window) {
+                  recognition = new SpeechRecognition();
+                } else {
+                  alert("Speech Recognition not supported in this browser. Try Chrome or Edge.");
+                }
+
+                if (recognition) {
+                  recognition.continuous = true;
+                  recognition.interimResults = true;
+                  recognition.lang = "en-US";
+
+                  recognition.onresult = (event) => {
+                    transcript = "";
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                      transcript += event.results[i][0].transcript;
+                    }
+                    queryDisplay.textContent = transcript;
+                  };
+
+                  recognition.onerror = (event) => {
+                    console.error("Speech recognition error:", event.error);
+                    voiceStatus.textContent = "Error: " + event.error;
+                  };
+
+                  recognition.onend = () => {
+                    listening = false;
+                    micIcon.classList.remove("fa-stop");
+                    micIcon.classList.add("fa-microphone");
+                    voiceBtn.classList.remove("listening");
+                    voiceStatus.textContent = "Click to speak";
+                    console.log("Stopped listening");
+                    console.log("Transcript:", transcript);
+                  };
+
+                  voiceBtn.onclick = () => {
+                    if (!listening) {
+                      recognition.start();
+                      listening = true;
+                      micIcon.classList.remove("fa-microphone");
+                      micIcon.classList.add("fa-stop");
+                      voiceBtn.classList.add("listening");
+                      voiceStatus.textContent = "Listening...";
+                      queryDisplay.textContent = "Listening...";
+                      console.log("Listening...");
+                    } else {
+                      recognition.stop();
+                    }
+                  };
+                }
+            </script>
+
+            <div class="response-area" id="responseArea" style="display: none;">
+                <div class="response-card">
+                    <div class="response-header">
+                        <i class="fas fa-video"></i>
+                        <span>Found in your visit</span>
                     </div>
-                    <p>Processing your recording...</p>
+                    <div class="video-placeholder">
+                        <i class="fas fa-play-circle"></i>
+                        <p>Video segment will play here</p>
+                    </div>
+                    <div class="response-text">
+                        <p>Based on your question, here's what your doctor said...</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</section>
 
-    <script src="script.js"></script>
+<!-- Upload Modal -->
+<div class="modal" id="uploadModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Upload Visit Recording</h3>
+            <button class="modal-close" id="closeModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="upload-area" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h4>Drag and drop your recording here</h4>
+                <p>Or click to browse files</p>
+                <input type="file" id="fileInput" accept="video/*,audio/*" hidden>
+            </div>
+            <div class="upload-progress" id="uploadProgress" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <p>Processing your recording...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
