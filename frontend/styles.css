@@ -1,3 +1,4 @@
+/* Reset and Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -5,6 +6,7 @@
 }
 
 :root {
+    /* Matcha Green Theme */
     --primary-matcha: #88C999;
     --secondary-matcha: #B8E6B8;
     --accent-evergreen: #2F5233;
@@ -34,6 +36,7 @@ body {
     padding: 0 2rem;
 }
 
+/* Navigation */
 .navbar {
     position: fixed;
     top: 0;
@@ -86,6 +89,8 @@ body {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
 }
+
+/* Hero Section */
 .hero {
     padding: 120px 0 80px;
     background: var(--background);
@@ -171,6 +176,7 @@ body {
     background: rgba(136, 201, 153, 0.1);
 }
 
+/* Hero Visual */
 .hero-visual {
     position: relative;
     height: 400px;
@@ -215,6 +221,7 @@ body {
     50% { transform: translateY(-20px); }
 }
 
+/* Features Section */
 .features {
     padding: 80px 0;
     background: var(--card-background);
@@ -337,6 +344,67 @@ body {
     0% { box-shadow: 0 0 0 0 rgba(136, 201, 153, 0.7); }
     70% { box-shadow: 0 0 0 20px rgba(136, 201, 153, 0); }
     100% { box-shadow: 0 0 0 0 rgba(136, 201, 153, 0); }
+}
+
+/* Recording Controls */
+.recording-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--card-background);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    box-shadow: var(--shadow);
+    border: 2px solid var(--primary-matcha);
+}
+
+.recording-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-matcha);
+    font-weight: 600;
+}
+
+.recording-dot {
+    width: 12px;
+    height: 12px;
+    background: var(--primary-matcha);
+    border-radius: 50%;
+    animation: pulse-dot 1s infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.recording-time {
+    font-family: 'Courier New', monospace;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    min-width: 50px;
+}
+
+.download-recordings-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 2px solid var(--border);
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.download-recordings-btn:hover {
+    border-color: var(--primary-matcha);
+    color: var(--primary-matcha);
+    transform: translateY(-2px);
 }
 
 .voice-btn i {
