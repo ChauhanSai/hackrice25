@@ -1,5 +1,13 @@
 from google import genai
 from pydantic import BaseModel
+from twelvelabs import TwelveLabs, core
+import os
+from twelvelabs.tasks import TasksRetrieveResponse
+from dotenv import load_dotenv
+
+load_dotenv()
+
+client = TwelveLabs(api_key=os.getenv('TWELVELABS_API_KEY'))
 
 def genquiz(payload: str):
     class Question(BaseModel):
@@ -28,8 +36,29 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
+load_dotenv()
+
 from flask_cors import CORS
 CORS(app)  # Enable CORS for all routes
+
+@app.route('/pegasus', methods = ['POST'])
+def getResponse():
+    try:
+        query = request.args.get('query')
+        vid_id = request.args.get('video_id')
+    except:
+        query = None
+        vid_id = None
+    try:
+        response = client.analyze(
+        video_id=vid_id,
+        prompt = query
+        )
+        print(response.data)
+        return jsonify(response.data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/dark/quiz', methods=['POST'])
 def sendquiz():
