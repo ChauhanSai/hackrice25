@@ -1,4 +1,3 @@
-
 from google import genai
 from pydantic import BaseModel
 
