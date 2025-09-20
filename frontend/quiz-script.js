@@ -1,7 +1,14 @@
-// Get video transcription
-const video = "68cecac9ca672ec899e15fe7";
-const index = "68cecab1c81f4a8a93031f29";
+// Get current URL query parameters
+const params = new URLSearchParams(window.location.search);
 
+// Extract values
+const index = params.get("i");   // "68cecab1c81f4a8a93031f29"
+const video = params.get("v");   // "68cecac9ca672ec899e15fe7"
+
+console.log("Index:", index);
+console.log("Video:", video);
+
+// Get video transcription
 const url1 = "http://127.0.0.1:5001/dark/transcript?v=" + video + "&i=" + index;
 const url2 = "http://127.0.0.1:5001/dark/quiz?hsp=Family+Medical";
 
