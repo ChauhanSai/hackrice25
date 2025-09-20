@@ -1,3 +1,13 @@
+// Get current URL query parameters
+const params = new URLSearchParams(window.location.search);
+
+// Extract values
+const index = params.get("i");   // "68cecab1c81f4a8a93031f29"
+const video = params.get("v");   // "68cecac9ca672ec899e15fe7"
+
+console.log("Index:", index);
+console.log("Video:", video);
+
 // Recording Timer Functions
 function startRecordingTimer() {
     recordingTimer = setInterval(() => {
