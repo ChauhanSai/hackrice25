@@ -1,66 +1,34 @@
-// Quiz Data
-const quizQuestions = [
-    {
-        question: "What medication did your doctor prescribe for your blood pressure?",
-        options: [
-            "Lisinopril 10mg",
-            "Metformin 500mg", 
-            "Aspirin 81mg",
-            "Atorvastatin 20mg"
-        ],
-        correct: 0,
-        hint: "Your doctor mentioned this medication helps with cardiovascular health and starts with 'L'.",
-        videoSegment: "Video segment from 12:30 - 'I'm prescribing Lisinopril for your blood pressure...'"
-    },
-    {
-        question: "How often should you take your prescribed medication?",
-        options: [
-            "Once daily in the morning",
-            "Twice daily with meals",
-            "Three times daily",
-            "Only when symptoms occur"
-        ],
-        correct: 1,
-        hint: "Your doctor emphasized taking it with food to avoid stomach upset.",
-        videoSegment: "Video segment from 15:45 - 'Take this twice daily with your meals...'"
-    },
-    {
-        question: "When is your follow-up appointment scheduled?",
-        options: [
-            "In 1 week",
-            "In 2 weeks", 
-            "In 1 month",
-            "In 3 months"
-        ],
-        correct: 1,
-        hint: "Your doctor wanted to check your progress relatively soon, but not immediately.",
-        videoSegment: "Video segment from 22:10 - 'Let's schedule a follow-up in two weeks...'"
-    },
-    {
-        question: "What dietary changes did your doctor recommend?",
-        options: [
-            "Increase protein intake",
-            "Reduce sodium and processed foods",
-            "Eliminate all carbohydrates", 
-            "Only eat organic foods"
-        ],
-        correct: 1,
-        hint: "Your doctor specifically mentioned foods that can affect blood pressure.",
-        videoSegment: "Video segment from 18:30 - 'Try to reduce your sodium intake and avoid processed foods...'"
-    },
-    {
-        question: "What warning signs should you watch for?",
-        options: [
-            "Mild headaches",
-            "Slight fatigue",
-            "Severe dizziness or chest pain",
-            "Occasional nausea"
-        ],
-        correct: 2,
-        hint: "Your doctor emphasized symptoms that would require immediate medical attention.",
-        videoSegment: "Video segment from 20:15 - 'Call me immediately if you experience severe dizziness or chest pain...'"
-    }
-];
+// Quiz data
+let quizQuestions;
+const url = "http://127.0.0.1:5001/dark/quiz?hsp=test";
+
+const headers = {
+  "X-HSP-Header": "test",
+  "Content-Type": "application/json"
+};
+
+const body = {
+  transcript: "Hi Mr petrol I’m Unice I’m one of the nurses helping out at the hospital ..."
+};
+
+fetch(url, {
+  method: "POST",
+  headers,
+  body: JSON.stringify(body)
+})
+  .then(response => response.json())
+  .then(data => {
+    console.log(JSON.parse(data));
+    console.log(JSON.parse(data)[0].quiz);
+    quizQuestions = JSON.parse(data)[0].quiz; // use it here
+    // e.g., call a function to render your quiz
+    // Initialize Quiz
+    initializeQuiz();
+    setupEventListeners();
+  })
+  .catch(err => {
+    console.error("Error:", err);
+  });
 
 // State Management
 let currentQuestionIndex = 0;
@@ -71,6 +39,8 @@ let correctAnswers = 0;
 let incorrectAnswers = 0;
 
 // DOM Elements
+const loadingContentEl = document.getElementById('loadingContent');
+const questionContentEl = document.getElementById('questionContent');
 const currentQuestionEl = document.getElementById('currentQuestion');
 const scoreEl = document.getElementById('score');
 const progressFillEl = document.getElementById('progressFill');
@@ -83,11 +53,6 @@ const nextBtnEl = document.getElementById('nextBtn');
 const hintCardEl = document.getElementById('hintCard');
 const resultsCardEl = document.getElementById('resultsCard');
 
-// Initialize Quiz
-document.addEventListener('DOMContentLoaded', function() {
-    initializeQuiz();
-    setupEventListeners();
-});
 
 function initializeQuiz() {
     currentQuestionIndex = 0;
@@ -123,6 +88,8 @@ function handleKeyPress(e) {
 function updateUI() {
     currentQuestionEl.textContent = currentQuestionIndex + 1;
     scoreEl.textContent = score;
+    loadingContentEl.style.display = 'none';
+    questionContentEl.style.display = 'block';
     
     const progress = ((currentQuestionIndex) / quizQuestions.length) * 100;
     progressFillEl.style.width = progress + '%';
@@ -182,6 +149,7 @@ function selectOption(index) {
     // Select current option
     const selectedBtn = document.querySelector(`[data-answer="${index}"]`);
     selectedBtn.classList.add('selected');
+    console.log(index);
     
     selectedAnswer = index;
     nextBtnEl.disabled = false;
@@ -244,11 +212,14 @@ function nextQuestion() {
     if (selectedAnswer === null) return;
     
     const question = quizQuestions[currentQuestionIndex];
-    const isCorrect = selectedAnswer === question.correct;
-    
+    console.log(selectedAnswer);
+    console.log(question.options[selectedAnswer]);
+    console.log(question.correct);
+    const isCorrect = question.options[selectedAnswer] === question.correct;
+
     // Show correct/incorrect states
     showAnswerFeedback(isCorrect);
-    
+
     // Update score and stats
     if (isCorrect) {
         score++;
@@ -256,16 +227,21 @@ function nextQuestion() {
     } else {
         incorrectAnswers++;
     }
-    
+
+    // Save progress
+    saveProgress();
+
     // Wait for feedback animation, then proceed
     setTimeout(() => {
         currentQuestionIndex++;
-        
+
         if (currentQuestionIndex < quizQuestions.length) {
             updateUI();
             loadQuestion();
+            saveProgress();
         } else {
             showResults();
+            localStorage.removeItem('quizProgress'); // Clear saved progress
         }
     }, 2000);
 }
@@ -488,39 +464,3 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeQuiz();
     }
 });
-
-// Save progress after each question
-function nextQuestion() {
-    if (selectedAnswer === null) return;
-    
-    const question = quizQuestions[currentQuestionIndex];
-    const isCorrect = selectedAnswer === question.correct;
-    
-    // Show correct/incorrect states
-    showAnswerFeedback(isCorrect);
-    
-    // Update score and stats
-    if (isCorrect) {
-        score++;
-        correctAnswers++;
-    } else {
-        incorrectAnswers++;
-    }
-    
-    // Save progress
-    saveProgress();
-    
-    // Wait for feedback animation, then proceed
-    setTimeout(() => {
-        currentQuestionIndex++;
-        
-        if (currentQuestionIndex < quizQuestions.length) {
-            updateUI();
-            loadQuestion();
-            saveProgress();
-        } else {
-            showResults();
-            localStorage.removeItem('quizProgress'); // Clear saved progress
-        }
-    }, 2000);
-}

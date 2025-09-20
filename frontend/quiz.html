@@ -60,7 +60,11 @@
                         <i class="fas fa-question-circle"></i>
                         <span>Medical Information Recall</span>
                     </div>
-                    <div class="question-content">
+                    <div class="loading" id="loadingContent" style="display: block;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Loading quiz</span>
+                    </div>
+                    <div class="question-content" id="questionContent" style="display: none;">
                         <h3 id="questionText">What medication did your doctor prescribe for your blood pressure?</h3>
                         <div class="options" id="optionsContainer">
                             <button class="option-btn" data-answer="a">
