@@ -53,6 +53,7 @@ if (recognition) {
     voiceStatus.textContent = "Click to speak";
     console.log("Stopped listening");
     console.log("Transcript:", transcript);
+    processQuery(transcript)      // api call to pegasus
   };
 
   voiceBtn.onclick = () => {
@@ -71,24 +72,7 @@ if (recognition) {
   };
 }
 
-function processQuery(query) {
-    // Process the transcribed query and the audio file
-    if (window.lastRecording) {
-        console.log('Processing query with audio file:', {
-            query: query,
-            audioFile: window.lastRecording.filename,
-            audioSize: window.lastRecording.size
-        });
 
-        // Here you would send both the text query and audio file to Twelve Labs API
-        processQueryWithTwelveLabs(query, window.lastRecording.blob);
-    }
-
-    // Simulate AI processing
-    setTimeout(() => {
-        showResponse(query);
-    }, 2000);
-}
 
 async function processQueryWithTwelveLabs(query, audioBlob) {
     // This is where you'd integrate with Twelve Labs API
@@ -110,7 +94,7 @@ async function processQueryWithTwelveLabs(query, audioBlob) {
 
     } catch (error) {
         console.error('Error processing with Twelve Labs:', error);
-        showNotification('Error processing your query. Please try again.', 'error');
+        //showNotification('Error processing your query. Please try again.', 'error');
     }
 }
 
@@ -355,12 +339,32 @@ function enhancedProcessQuery(query) {
     setTimeout(() => {
         voiceBtn.classList.remove('processing');
         voiceStatus.textContent = 'Click to speak';
-        showResponse(query);
+        //showResponse(query);
     }, 3000);
 }
 
-// Replace the original processQuery function
-window.processQuery = enhancedProcessQuery;
+// window.processQuery = enhancedProcessQuery;     // removing because overriding process function
+
+async function processQuery(query) {
+    try {
+        const response = await fetch('http://localhost:5001/pegasus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                query: query,
+                video_id: "68cebe834fc8dabea3205624"
+            })
+        });
+        
+        const data = await response.json();
+        console.log("Response:", data);
+        
+    } catch (error) {
+        console.log("Error:", error);
+    }
+}
 
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
@@ -402,7 +406,7 @@ function initializeDemoData() {
     // Simulate having a pre-uploaded recording for demo purposes
     setTimeout(() => {
         if (!localStorage.getItem('hasSeenDemo')) {
-            showNotification('Demo mode: Recording already uploaded! Try asking a question.', 'info');
+            //ShowNotification('Demo mode: Recording already uploaded! Try asking a question.', 'info');
             localStorage.setItem('hasSeenDemo', 'true');
         }
     }, 2000);
