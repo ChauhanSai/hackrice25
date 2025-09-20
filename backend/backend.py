@@ -8,6 +8,7 @@ import requests
 load_dotenv()
 
 client = TwelveLabs(api_key=os.getenv('TWELVELABS_API_KEY'))
+gemini_client = genai.Client() # Uses the GEMINI_API_KEY env var
 
 def genquiz(payload: str):
     class Question(BaseModel):
@@ -18,8 +19,8 @@ def genquiz(payload: str):
     class Quiz(BaseModel):
         quiz: list[Question]
 
-    client = genai.Client() # Uses the GEMINI_API_KEY env var
-    response = client.models.generate_content(
+    
+    response = gemini_client.models.generate_content(
         model="gemini-2.5-flash",
         contents="Generate a 5 question quiz about important information to remember from the following telehealth transcript. The patient will be taking the quiz. " + payload,
         config={
@@ -58,6 +59,41 @@ def getResponse():
         return jsonify(response.data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/merango', methods = ['POST'])
+def getMerangoResponse():
+    try:
+        query = request.args.get('query')
+    except:
+        query = None
+    
+    response = gemini_client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=f"Extract the core broad keyword from this query as a single word/phrase (e.g., 'what medicine should I take' → 'medicine'). Output only that. Query: {query}",
+    )
+    result = response.text
+    print(result)
+    merango_response = client.search.query(
+        index_id=os.getenv("MERANGO_INDEX"),
+        search_options=["visual", "audio"],
+        query_text=response.text,
+        group_by="video",
+        operator="or",
+        page_limit=5,
+        sort_option="score",
+        #adjust_confidence_level=0.5
+    )
+    print("Going to print response")
+    print(merango_response.items[0].clips[0])
+    res = merango_response.items[0].clips[0]  # top most clip
+    response_dict = {
+        "start": res.start,
+        "end": res.end,
+        "id": res.video_id 
+    }
+    return jsonify(response_dict)
+    
 
 
 @app.route('/dark/transcript', methods=['GET'])
