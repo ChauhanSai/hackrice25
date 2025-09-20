@@ -1,4 +1,3 @@
-// Recording Timer Functions
 function startRecordingTimer() {
     recordingTimer = setInterval(() => {
         const elapsed = Date.now() - recordingStartTime;
@@ -19,7 +18,6 @@ function stopRecordingTimer() {
     recordingTime.textContent = '00:00';
 }
 
-// Download All Recordings
 async function downloadAllRecordings() {
     try {
         const recordings = await getAllRecordings();
@@ -28,19 +26,16 @@ async function downloadAllRecordings() {
             showNotification('No recordings found to download.', 'info');
             return;
         }
-        
-        // If we have IndexedDB recordings, create a zip
+    
         if (recordings.length > 0) {
             await downloadRecordingsAsZip(recordings);
         } else if (window.lastRecording) {
-            // Fallback: download the current session recording
             downloadAudioFile(window.lastRecording.blob, window.lastRecording.filename);
         }
         
     } catch (error) {
         console.error('Error downloading recordings:', error);
-        
-        // Final fallback: download the last recording if available
+    
         if (window.lastRecording) {
             downloadAudioFile(window.lastRecording.blob, window.lastRecording.filename);
             showNotification('Downloaded current recording.', 'success');
@@ -310,7 +305,6 @@ let recordingTimeout;
 let audioChunks = [];
 let audioStream;
 
-// Initialize Speech Recognition
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
@@ -319,7 +313,6 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognition.lang = 'en-US';
 }
 
-// Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     addScrollEffects();
