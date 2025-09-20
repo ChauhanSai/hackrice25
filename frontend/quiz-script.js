@@ -8,6 +8,13 @@ const video = params.get("v");   // "68cecac9ca672ec899e15fe7"
 console.log("Index:", index);
 console.log("Video:", video);
 
+// Back to main page
+const moonToggle = document.getElementById('moonToggle');
+moonToggle.addEventListener('click', function() {
+    // Simulate redirect to dark mode/quiz page
+    window.location.href = 'index.html?i='+(index || '')+'&v='+(video || '');
+});
+
 // Get video transcription
 const url1 = "http://127.0.0.1:5001/dark/transcript?v=" + video + "&i=" + index;
 const url2 = "http://127.0.0.1:5001/dark/quiz?hsp=Family+Medical";
@@ -35,7 +42,9 @@ fetch(url1)
   .then(response => response.json())
   .then(data => {
     console.log("Quiz:", data);
-    quizQuestions = data[0].quiz; // no need for JSON.parse if server already returns JSON
+    console.log(JSON.parse(data));
+    console.log(JSON.parse(data)[0].quiz);
+    quizQuestions = JSON.parse(data)[0].quiz; // use it here
 
     // Initialize quiz once we have the data
     initializeQuiz();
@@ -67,7 +76,6 @@ const hintBtnEl = document.getElementById('hintBtn');
 const nextBtnEl = document.getElementById('nextBtn');
 const hintCardEl = document.getElementById('hintCard');
 const resultsCardEl = document.getElementById('resultsCard');
-
 
 function initializeQuiz() {
     currentQuestionIndex = 0;
