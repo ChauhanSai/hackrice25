@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>telehealth</title>
+    <title>🍵 jit - Memory Quiz</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="quiz-styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -14,8 +14,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="fas fa-heartbeat"></i>
-                <span>namename</span>
+                <span>jit</span>
             </div>
             <div class="nav-actions">
                 <button class="back-btn" id="moonToggle">
@@ -29,20 +28,12 @@
     <section class="quiz-header">
         <div class="container">
             <h1>Memory Assessment Quiz</h1>
-            <p>Test your recall of medical information with our interactive quiz system</p>
-            <div class="quiz-stats">
-                <div class="stat">
-                    <span class="stat-number" id="currentQuestion">1</span>
-                    <span class="stat-label">Question</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number" id="totalQuestions">5</span>
-                    <span class="stat-label">Total</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number" id="score">0</span>
-                    <span class="stat-label">Score</span>
-                </div>
+            <p>Test your recall safely - Learn from mistakes without real consequences</p>
+            <!-- Hearts System -->
+            <div class="hearts-container" id="heartsContainer">
+                <i class="fas fa-heart heart" id="heart1"></i>
+                <i class="fas fa-heart heart" id="heart2"></i>
+                <i class="fas fa-heart heart" id="heart3"></i>
             </div>
         </div>
     </section>
@@ -53,7 +44,7 @@
                     <div class="progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
-                    <span class="progress-text" id="progressText">Question 1 of 5</span>
+                    <span class="progress-text" id="progressText">Ready to begin</span>
                 </div>
                 <div class="question-card" id="questionCard">
                     <div class="question-header">
@@ -61,28 +52,13 @@
                         <span>Medical Information Recall</span>
                     </div>
                     <div class="loading" id="loadingContent" style="display: block;">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <span>Loading quiz</span>
+                        <i class="fas fa-spinner"></i>
+                        <span>Loading quiz...</span>
                     </div>
                     <div class="question-content" id="questionContent" style="display: none;">
-                        <h3 id="questionText">What medication did your doctor prescribe for your blood pressure?</h3>
+                        <h3 id="questionText">Loading question...</h3>
                         <div class="options" id="optionsContainer">
-                            <button class="option-btn" data-answer="a">
-                                <span class="option-letter">A</span>
-                                <span class="option-text">Lisinopril 10mg</span>
-                            </button>
-                            <button class="option-btn" data-answer="b">
-                                <span class="option-letter">B</span>
-                                <span class="option-text">Metformin 500mg</span>
-                            </button>
-                            <button class="option-btn" data-answer="c">
-                                <span class="option-letter">C</span>
-                                <span class="option-text">Aspirin 81mg</span>
-                            </button>
-                            <button class="option-btn" data-answer="d">
-                                <span class="option-letter">D</span>
-                                <span class="option-text">Atorvastatin 20mg</span>
-                            </button>
+                            <!-- Options will be dynamically generated -->
                         </div>
                     </div>
                     <div class="question-actions">
@@ -106,9 +82,9 @@
                     <div class="hint-content">
                         <div class="video-segment">
                             <i class="fas fa-play-circle"></i>
-                            <p>Video segment from 12:30 - "I'm prescribing Lisinopril for your blood pressure..."</p>
+                            <p>Video segment information</p>
                         </div>
-                        <p class="hint-text">Your doctor mentioned this medication helps with cardiovascular health.</p>
+                        <p class="hint-text">Hint text will appear here</p>
                     </div>
                 </div>
 
@@ -130,8 +106,8 @@
                                 <span>Correct Answers: <strong id="correctCount">0</strong></span>
                             </div>
                             <div class="breakdown-item">
-                                <i class="fas fa-times-circle incorrect"></i>
-                                <span>Incorrect Answers: <strong id="incorrectCount">0</strong></span>
+                                <i class="fas fa-heart"></i>
+                                <span>Hearts Remaining: <strong id="heartsRemaining">0</strong></span>
                             </div>
                             <div class="breakdown-item">
                                 <i class="fas fa-lightbulb"></i>
@@ -161,22 +137,22 @@
                     <div class="feature-icon">
                         <i class="fas fa-brain"></i>
                     </div>
-                    <h3>Reinforcement Learning</h3>
-                    <p>Repeated testing helps strengthen memory pathways and improves long-term retention of medical information.</p>
+                    <h3>Safe Learning Space</h3>
+                    <p>Practice remembering medical information without real-world consequences. Make mistakes and learn freely.</p>
+                </div>
+                <div class="feature-card-dark">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Risk-Free Practice</h3>
+                    <p>The hearts system lets you take chances and test your memory in a gamified, low-stakes environment.</p>
                 </div>
                 <div class="feature-card-dark">
                     <div class="feature-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <h3>Progress Tracking</h3>
-                    <p>Monitor your improvement over time and identify areas where you need additional review.</p>
-                </div>
-                <div class="feature-card-dark">
-                    <div class="feature-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <h3>Spaced Repetition</h3>
-                    <p>Scientifically-proven method to optimize when and how often you review important health information.</p>
+                    <h3>Track Progress</h3>
+                    <p>Monitor improvement over time and identify areas where you need additional review.</p>
                 </div>
             </div>
         </div>
