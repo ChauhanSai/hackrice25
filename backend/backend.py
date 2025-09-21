@@ -56,8 +56,6 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-load_dotenv()
-
 from flask_cors import CORS
 CORS(app)
 
@@ -67,43 +65,49 @@ def getNextSteps():
     payload = json_data.get('transcription') if json_data else None
 
     if payload:
-        response = gemini_client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents="Given the telehealth transcript below, generate some text of the next steps for the patient. Utilize new lines and no emojis for headers of sections but do not use markdown for formatting, just use plain text. Include important dates, activities/habits, future appointments, or things to be aware of. " + payload,
-        )
+        try:
+            response = gemini_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents="Given the telehealth transcript below, generate some text of the next steps for the patient. Utilize new lines and no emojis for headers of sections but do not use markdown for formatting, just use plain text. Include important dates, activities/habits, future appointments, or things to be aware of. " + payload,
+            )
 
-        # Initialize TTS client
-        client = texttospeech.TextToSpeechClient()
+            # Initialize TTS client
+            from google.cloud import texttospeech
+            client = texttospeech.TextToSpeechClient()
 
-        synthesis_input = texttospeech.SynthesisInput(text=response.text)
+            synthesis_input = texttospeech.SynthesisInput(text=response.text)
 
-        voice = texttospeech.VoiceSelectionParams(
-            language_code="en-US",
-            ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL,
-        )
+            voice = texttospeech.VoiceSelectionParams(
+                language_code="en-US",
+                ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL,
+            )
 
-        audio_config = texttospeech.AudioConfig(
-            audio_encoding=texttospeech.AudioEncoding.MP3
-        )
+            audio_config = texttospeech.AudioConfig(
+                audio_encoding=texttospeech.AudioEncoding.MP3
+            )
 
-        tts_response = client.synthesize_speech(
-            input=synthesis_input,
-            voice=voice,
-            audio_config=audio_config
-        )
+            tts_response = client.synthesize_speech(
+                input=synthesis_input,
+                voice=voice,
+                audio_config=audio_config
+            )
 
-        # Encode audio to base64 to safely include in JSON
-        audio_base64 = base64.b64encode(tts_response.audio_content).decode('utf-8')
+            audio_base64 = base64.b64encode(tts_response.audio_content).decode('utf-8')
 
-        json_steps = {
-            "steps": response.text,
-            "audio": audio_base64
-        }
+            json_steps = {
+                "steps": response.text,
+                "audio": audio_base64
+            }
 
-        print(json_steps)
-        return json_steps
+            print(json_steps)
+            # Use jsonify to ensure proper headers and CORS
+            return jsonify(json_steps), 200
 
-    return {"error": "Missing JSON body with 'transcript'"}
+        except Exception as e:
+            print("Error in /next-steps:", str(e))
+            return jsonify({"error": str(e)}), 500
+
+    return jsonify({"error": "Missing JSON body with 'transcript'"}), 400
 
 
 @app.route('/pegasus', methods = ['POST'])
