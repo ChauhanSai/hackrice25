@@ -440,6 +440,112 @@ body {
     box-shadow: var(--shadow-lg);
 }
 
+/* Floating Next Steps Button */
+.floating-next-steps-btn {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 3002;
+    background: var(--primary-matcha);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 64px;
+    height: 64px;
+    box-shadow: 0 6px 24px rgba(136, 201, 153, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.floating-next-steps-btn:hover {
+    background: var(--dark-matcha);
+    transform: translateY(-4px) scale(1.07);
+}
+
+/* Next Steps Modal as Chatbot */
+#nextStepsModal {
+    display: none;
+    position: fixed;
+    bottom: 128px;
+    right: 32px; /* Ensure this is present and not overridden */
+    left: auto;   /* Add this line to override any left: 0 from .modal */
+    top: auto;
+    width: 350px;
+    max-width: 90vw;
+    z-index: 3001;
+    background: transparent;
+    box-shadow: none;
+    align-items: flex-end;
+    justify-content: flex-end;
+    pointer-events: none;
+}
+
+#nextStepsModal.active {
+    display: flex;
+    pointer-events: auto;
+}
+
+#nextStepsModal .modal-content {
+    background: var(--card-background);
+    border-radius: 18px 18px 18px 8px;
+    box-shadow: 0 8px 32px rgba(47, 82, 51, 0.18);
+    width: 100%;
+    max-width: 350px;
+    padding: 1.5rem 1.25rem;
+    border: 1.5px solid var(--primary-matcha);
+    margin-bottom: 0;
+    max-height: 400px; /* Limit height */
+    overflow-y: auto;  /* Scroll if content exceeds max-height */
+}
+
+#nextStepsModal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+#nextStepsModal .modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--dark-evergreen);
+}
+
+#nextStepsModal .modal-body p {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+#nextStepsModal .modal-close {
+    display: none;
+}
+
+/* Remove backdrop for chatbot modal */
+#nextStepsModal {
+    background: none;
+    backdrop-filter: none;
+}
+
+/* Responsive for chatbot modal */
+@media (max-width: 600px) {
+    #nextStepsModal,
+    #nextStepsModal .modal-content {
+        right: 10px;
+        bottom: 90px;
+        max-width: 98vw;
+        width: 98vw;
+        border-radius: 16px 16px 16px 6px;
+        padding: 1rem 0.75rem;
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .hero-content h1 {

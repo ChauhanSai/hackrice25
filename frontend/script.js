@@ -56,8 +56,8 @@ if (recognition) {
     processQuery(transcript)      // api call to pegasus
     const res = await processVideoQuery(transcript);       // api call to merango
     if (res) {
-        showClip(res); 
-    } 
+        showClip(res);
+    }
   };
 
   voiceBtn.onclick = () => {
@@ -81,18 +81,18 @@ function showClip(timingData) {
     const responseArea = document.getElementById("responseArea");
     const responseText = document.querySelector('.response-text p');
     const videoPlaceholder = document.querySelector('.video-placeholder');
-    
+
     // Update text
     responseText.innerHTML = `
         <p><strong>🎯 Found it!</strong> Here's the exact moment from your visit:</p>
         <p><small>${formatTime(timingData.start)} - ${formatTime(timingData.end)}</small></p>
     `;
-    
+
     // Create vid player with start and end
     const startTime = timingData.start;
     const endTime = timingData.end;
     const duration = endTime - startTime;
-    
+
     videoPlaceholder.innerHTML = `
         <video id="clipPlayer" controls style="width: 100%; max-width: 400px; border-radius: 10px;">
             <source src="https://storage.googleapis.com/hackrice-2025/68cecac9ca672ec899e15fe7.mp4" type="video/mp4">
@@ -102,10 +102,10 @@ function showClip(timingData) {
             <br>
         </div>
     `;
-    
-    
+
+
     setupClipPlayer(timingData.video_id, startTime, endTime);
-    
+
     responseArea.style.display = 'block';
     responseArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -113,10 +113,10 @@ function showClip(timingData) {
 function setupClipPlayer(videoId, startTime, endTime) {       // Setting ts up
     const video = document.getElementById('clipPlayer');
     const playPauseBtn = document.getElementById('playPauseBtn');
-    
+
     video.addEventListener('loadeddata', () => {
         video.currentTime = startTime;
-        
+
         // Custom play/pause control
         playPauseBtn.onclick = () => {
             if (video.paused) {
@@ -127,7 +127,7 @@ function setupClipPlayer(videoId, startTime, endTime) {       // Setting ts up
                 playPauseBtn.textContent = '▶️ Play';
             }
         };
-        
+
         // Enforce time boundaries
         video.addEventListener('timeupdate', () => {
             if (video.currentTime >= endTime) {
@@ -136,7 +136,7 @@ function setupClipPlayer(videoId, startTime, endTime) {       // Setting ts up
                 playPauseBtn.textContent = '▶️ Play';
             }
         });
-        
+
         // Prevent seeking outside range
         video.addEventListener('seeking', () => {
             if (video.currentTime < startTime || video.currentTime > endTime) {
@@ -144,7 +144,7 @@ function setupClipPlayer(videoId, startTime, endTime) {       // Setting ts up
             }
         });
     });
-    
+
     video.src = `https://storage.googleapis.com/hackrice-2025/68cecac9ca672ec899e15fe7.mp4`;
 }
 
@@ -189,11 +189,32 @@ const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
 const uploadProgress = document.getElementById('uploadProgress');
 
+// Next Steps Modal Elements
+const nextStepsBtn = document.getElementById('nextStepsBtn');
+const nextStepsModal = document.getElementById('nextStepsModal');
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     addScrollEffects();
     animateOnScroll();
+
+    // Next Steps modal toggle with button
+    if (nextStepsBtn && nextStepsModal) {
+        nextStepsBtn.addEventListener('click', function() {
+            const isActive = nextStepsModal.classList.contains('active');
+            if(isActive){
+                audio.pause();
+            } else {
+                audio.play();
+            }
+            nextStepsModal.classList.toggle('active');
+            // Change button icon
+            nextStepsBtn.innerHTML = isActive
+                ? '<i class="fas fa-thumbtack"></i>'
+                : '<i class="fas fa-times"></i>';
+        });
+    }
 });
 
 function initializeEventListeners() {
@@ -379,10 +400,10 @@ async function processQuery(query) {     // for pegasus
                 video_id: video
             })
         });
-        
+
         const data = await response.json();
         console.log("Response:", data);
-        
+
     } catch (error) {
         console.log("Error:", error);
     }
@@ -399,11 +420,11 @@ async function processVideoQuery(query) {    // for merango
                 query: query,
             })
         });
-        
+
         const data = await response.json();
         console.log("Response:", data);
         return data;
-        
+
     } catch (error) {
         console.log("Error:", error);
         return null;
@@ -418,9 +439,13 @@ document.addEventListener('keydown', function(e) {
         toggleVoiceRecording();
     }
 
-    // Escape to close modal
+    // Escape to close modals
     if (e.key === 'Escape') {
         closeUploadModal();
+        if (nextStepsModal && nextStepsModal.classList.contains('active')) {
+            nextStepsModal.classList.remove('active');
+            nextStepsBtn.innerHTML = '<i class="fas fa-thumbtack"></i>';
+        }
     }
 });
 
@@ -460,3 +485,44 @@ function initializeDemoData() {
 document.addEventListener('DOMContentLoaded', function() {
     initializeDemoData();
 });
+
+// Get video transcription
+const url1 = "http://127.0.0.1:5001/dark/transcript?v=" + video + "&i=" + index;
+const url2 = "http://127.0.0.1:5001/next-steps";
+
+let nextSteps;
+let audio;
+
+fetch(url1)
+  .then(response => response.json())
+  .then(data => {
+    console.log("Transcript:", data);
+    const transcript = data.transcript;
+    console.log("Transcript Text:", transcript);
+
+    // Next steps API call
+    return fetch(url2, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ transcription: transcript })
+    });
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log("Next Steps:", data);
+    nextSteps = data["steps"]; // use it here
+
+    nextStepsContentEl = document.getElementById("nextStepsContent");
+    nextStepsContentEl.innerHTML = nextSteps;
+    nextStepsBtnEl = document.getElementById("nextStepsBtn");
+    nextStepsBtnEl.style.display = "block";
+
+    // If you want to trigger TTS, call a function here:
+    const audioBytes = data['audio'];
+    audio = new Audio("data:audio/mp3;base64," + audioBytes);
+  })
+  .catch(err => {
+    console.error("Error:", err);
+  });
