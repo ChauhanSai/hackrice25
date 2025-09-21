@@ -65,8 +65,6 @@ let incorrectAnswers = 0;
 // DOM Elements
 const loadingContentEl = document.getElementById('loadingContent');
 const questionContentEl = document.getElementById('questionContent');
-const currentQuestionEl = document.getElementById('currentQuestion');
-const scoreEl = document.getElementById('score');
 const progressFillEl = document.getElementById('progressFill');
 const progressTextEl = document.getElementById('progressText');
 const questionCardEl = document.getElementById('questionCard');
@@ -76,6 +74,11 @@ const hintBtnEl = document.getElementById('hintBtn');
 const nextBtnEl = document.getElementById('nextBtn');
 const hintCardEl = document.getElementById('hintCard');
 const resultsCardEl = document.getElementById('resultsCard');
+const heart1El = document.getElementById('heart1');
+const heart2El = document.getElementById('heart2');
+const heart3El = document.getElementById('heart3');
+
+let hearts = [heart1El, heart2El, heart3El];
 
 function initializeQuiz() {
     currentQuestionIndex = 0;
@@ -109,8 +112,6 @@ function handleKeyPress(e) {
 }
 
 function updateUI() {
-    currentQuestionEl.textContent = currentQuestionIndex + 1;
-    scoreEl.textContent = score;
     loadingContentEl.style.display = 'none';
     questionContentEl.style.display = 'block';
     
@@ -249,7 +250,16 @@ function nextQuestion() {
         correctAnswers++;
     } else {
         incorrectAnswers++;
-    }
+        // Remove a heart
+        if(hearts.length > 0) {
+            removeHeart = hearts.pop();
+            removeHeart.style.filter = "opacity(25%)";  // 50% brightness
+        } else {
+            // No hearts left, end quiz early
+            alert('You have no hearts left! The quiz will end now.');
+        }
+        }
+
 
     // Save progress
     saveProgress();

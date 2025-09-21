@@ -41,7 +41,7 @@ app = Flask(__name__)
 load_dotenv()
 
 from flask_cors import CORS
-CORS(app, origins=["http://127.0.0.1:5500", "http://localhost:5500", "http://127.0.0.1:5000", "http://localhost:5000"])  # Enable CORS for specific origins
+CORS(app)
 
 @app.route('/pegasus', methods = ['POST'])
 def getResponse():
