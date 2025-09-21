@@ -48,19 +48,39 @@ if (recognition) {
   recognition.onend = async () => {
     listening = false;
     micIcon.classList.remove("fa-stop");
-    micIcon.classList.add("fa-microphone");
+    micIcon.classList.add("fa-spinner", "fa-spin");
     voiceBtn.classList.remove("listening");
-    voiceStatus.textContent = "Click to speak";
+    voiceBtn.classList.add("loading");
+    voiceBtn.disabled = true;
+    voiceStatus.textContent = "Processing...";
     console.log("Stopped listening");
     console.log("Transcript:", transcript);
-    processQuery(transcript)      // api call to pegasus
-    const res = await processVideoQuery(transcript);       // api call to merango
-    if (res) {
-        showClip(res);
+    
+    try {
+      // Get text analysis first
+      await processQuery(transcript);      // api call to pegasus
+      
+      // Then get video clip and add it to existing response
+      const res = await processVideoQuery(transcript);       // api call to merango
+      if (res) {
+          addClipToResponse(res); 
+      }
+    } catch (error) {
+      console.error("Error processing query:", error);
+    } finally {
+      // Reset button to normal state
+      micIcon.classList.remove("fa-spinner", "fa-spin");
+      micIcon.classList.add("fa-microphone");
+      voiceBtn.classList.remove("loading");
+      voiceBtn.disabled = false;
+      voiceStatus.textContent = "Click to speak";
     }
   };
 
   voiceBtn.onclick = () => {
+    // Don't allow clicks while loading
+    if (voiceBtn.disabled) return;
+    
     if (!listening) {
       recognition.start();
       listening = true;
@@ -77,6 +97,35 @@ if (recognition) {
 }
 
 
+function addClipToResponse(timingData) {
+    const videoPlaceholder = document.querySelector('.video-placeholder');
+    
+    // Add video player to the existing response (don't overwrite text)
+    const startTime = timingData.start;
+    const endTime = timingData.end;
+    const duration = endTime - startTime;
+    
+    videoPlaceholder.innerHTML = `
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <strong>Found it!</strong> Here's the exact moment from your visit:
+            <br><small>${formatTime(timingData.start)} - ${formatTime(timingData.end)}</small>
+        </div>
+        <video id="clipPlayer" controls style="width: 100%; max-width: 400px; border-radius: 10px;">
+            <source src="https://storage.googleapis.com/hackrice-2025/68cecac9ca672ec899e15fe7.mp4" type="video/mp4">
+        </video>
+        <div style="text-align: center; margin-top: 0.5rem; color: #666;">
+            <small>${formatDuration(duration)}</small>
+        </div>
+    `;
+    
+    setupClipPlayer(timingData.video_id, startTime, endTime);
+    
+    // Make sure response area is visible and scroll to it
+    const responseArea = document.getElementById("responseArea");
+    responseArea.style.display = 'block';
+    responseArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 function showClip(timingData) {
     const responseArea = document.getElementById("responseArea");
     const responseText = document.querySelector('.response-text p');
@@ -84,7 +133,7 @@ function showClip(timingData) {
 
     // Update text
     responseText.innerHTML = `
-        <p><strong>🎯 Found it!</strong> Here's the exact moment from your visit:</p>
+        <p><strong>Found it!</strong> Here's the exact moment from your visit:</p>
         <p><small>${formatTime(timingData.start)} - ${formatTime(timingData.end)}</small></p>
     `;
 
@@ -403,10 +452,91 @@ async function processQuery(query) {     // for pegasus
 
         const data = await response.json();
         console.log("Response:", data);
-
+        
+        // Display the response in a box next to the video
+        displayQueryResponse(data, query);
+        
     } catch (error) {
         console.log("Error:", error);
+        displayQueryResponse({ error: error.message }, query);
     }
+}
+
+function displayQueryResponse(data, query) {
+    const responseArea = document.getElementById("responseArea");
+    const responseText = document.querySelector('.response-text p');
+    
+    // Show the response area
+    responseArea.style.display = 'block';
+    
+    // Function to clean JSON from markdown code blocks
+    function cleanJsonResponse(text) {
+        if (typeof text !== 'string') return text;
+        
+        // Remove ```json at the start and ``` at the end
+        let cleaned = text.trim();
+        if (cleaned.startsWith('```json')) {
+            cleaned = cleaned.substring(7); // Remove ```json
+        } else if (cleaned.startsWith('```')) {
+            cleaned = cleaned.substring(3); // Remove ```
+        }
+        
+        if (cleaned.endsWith('```')) {
+            cleaned = cleaned.substring(0, cleaned.length - 3); // Remove ``` at end
+        }
+        
+        return cleaned.trim();
+    }
+    
+    // Update the response text with the analysis
+    if (data.error) {
+        responseText.innerHTML = `
+            <p><strong>Error:</strong></p>
+            <div class="error-box">
+                <p>${data.error}</p>
+            </div>
+        `;
+    } else if (data.fhir_data) {
+        // Clean the FHIR data before displaying
+        let cleanedFhirData = data.fhir_data;
+        if (typeof data.fhir_data === 'string') {
+            cleanedFhirData = cleanJsonResponse(data.fhir_data);
+            try {
+                // Try to parse and format as proper JSON
+                const parsedJson = JSON.parse(cleanedFhirData);
+                cleanedFhirData = JSON.stringify(parsedJson, null, 2);
+            } catch (e) {
+                // If parsing fails, just use the cleaned string
+                console.log("Could not parse FHIR JSON:", e);
+            }
+        } else {
+            cleanedFhirData = JSON.stringify(data.fhir_data, null, 2);
+        }
+        
+        // If FHIR data is present, show both analysis and FHIR info
+        responseText.innerHTML = `
+            <p><strong>Analysis for:</strong> "${query}"</p>
+            <div class="analysis-box">
+                <p><strong>Doctor's Response:</strong></p>
+                <p>${data.analysis}</p>
+            </div>
+            <div class="fhir-box">
+                <p><strong>Medical Data (FHIR):</strong></p>
+                <pre>${cleanedFhirData}</pre>
+            </div>
+        `;
+    } else {
+        // Regular analysis only
+        responseText.innerHTML = `
+            <p><strong>Analysis for:</strong> "${query}"</p>
+            <div class="analysis-box">
+                <p>${data}</p>
+            </div>
+        `;
+    }
+    
+    // Scroll to the response
+    responseArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 async function processVideoQuery(query) {    // for merango

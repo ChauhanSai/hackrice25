@@ -14,11 +14,6 @@ import re
 
 load_dotenv()
 
-MONGODB_URI = os.getenv('MONGODB_URI')
-mongo_client = MongoClient(MONGODB_URI)
-db = mongo_client['people']
-collection = db['persons']
-
 client = TwelveLabs(api_key=os.getenv('TWELVELABS_API_KEY'))
 gemini_client = genai.Client() # Uses the GEMINI_API_KEY env var
 
