@@ -5,9 +5,19 @@ import os
 from twelvelabs.tasks import TasksRetrieveResponse
 from dotenv import load_dotenv
 import requests
-from google.cloud import storage, texttospeech
+from google.cloud import storage
 import base64
+import json
+from datetime import datetime
+import uuid
+import re
+
 load_dotenv()
+
+MONGODB_URI = os.getenv('MONGODB_URI')
+mongo_client = MongoClient(MONGODB_URI)
+db = mongo_client['people']
+collection = db['persons']
 
 client = TwelveLabs(api_key=os.getenv('TWELVELABS_API_KEY'))
 gemini_client = genai.Client() # Uses the GEMINI_API_KEY env var
@@ -35,6 +45,18 @@ def genquiz(payload: str):
 
     return response.text
 
+def extract_json_from_llm(text):
+    # Find JSON block between ```json and ``` or just between ```
+    pattern = r'```(?:json)?\s*(.*?)\s*```'
+    match = re.search(pattern, text, re.DOTALL)
+    
+    if match:
+        json_str = match.group(1).strip()
+    else:
+        # If no code blocks, assume the whole thing is JSON
+        json_str = text.strip()
+    
+    return json.loads(json_str)
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
@@ -98,13 +120,50 @@ def getResponse():
     except:
         query = None
         vid_id = None
+    
     try:
         response = client.analyze(
-        video_id=vid_id,
-        prompt = query
+            video_id=vid_id,
+            prompt = query
         )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    try:
+        transcript_response = client.analyze(
+        video_id = vid_id,
+        prompt="Give me the transcript of this entire vide"
+        )
+        
+        # If patient_id provided, extract FHIR data
+        fhir_response = gemini_client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"""Extract medical information from this consultation analysis and format it as FHIR JSON resources. Keep it as minimal as you can.
+                
+Analysis: {transcript_response.data}
+
+Create FHIR resources for:
+1. Patient (use first name derived from video)
+2. Encounter (consultation session)
+3. Condition (any diagnoses/symptoms mentioned)
+4. MedicationStatement (current medications)
+5. Observation (vital signs, symptoms, measurements)
+6. CarePlan (treatment recommendations)
+
+Return as valid FHIR JSON with proper resource structure. If no medical information found, return empty resources. DO NOT USE EMOJIS IN YOUR OUTPUTS"""
+            )
+            
+        fhir_data = fhir_response.text
+        cleaned_json = extract_json_from_llm(fhir_data)
+        print(cleaned_json)
+        response_with_fhir = {
+            "analysis": response.data,
+            "fhir_data": fhir_data
+        }
+        return jsonify(response_with_fhir)
+        
         print(response.data)
         return jsonify(response.data)
+    
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

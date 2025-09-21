@@ -74,9 +74,10 @@ body.dark-mode {
     color: var(--text-primary);
 }
 
-.nav-logo::before {
-    content: '🍵';
-    font-size: 1.5rem;
+.logo-img {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
 }
 
 .back-btn {

@@ -67,9 +67,10 @@ body {
     color: var(--dark-evergreen);
 }
 
-.nav-logo::before {
-    content: '🍵';
-    font-size: 1.5rem;
+.logo-img {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
 }
 
 .moon-toggle {
@@ -363,6 +364,17 @@ body {
     animation: pulse-listen 1.5s infinite;
 }
 
+.loading {
+    background: var(--dark-matcha) !important;
+    cursor: not-allowed !important;
+    opacity: 0.8;
+}
+
+.loading:hover {
+    transform: none !important;
+    background: var(--dark-matcha) !important;
+}
+
 @keyframes pulse-listen {
     0% { box-shadow: 0 8px 25px rgba(229, 57, 53, 0.35); }
     50% { box-shadow: 0 8px 40px rgba(229, 57, 53, 0.5); }
@@ -408,7 +420,45 @@ body {
     background: var(--light-matcha);
     padding: 1.5rem;
     border-radius: 15px;
-    border-left: 4px solid var(--accent-evergreen);
+    border: 2px solid var(--primary-matcha);
+}
+
+/* Enhanced styling for query responses */
+.response-text .analysis-box {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    border-left: 3px solid var(--primary-matcha);
+}
+
+.response-text .fhir-box {
+    background: #e8f5e9;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    border-left: 3px solid var(--dark-matcha);
+}
+
+.response-text .fhir-box pre {
+    white-space: pre-wrap;
+    font-size: 0.9em;
+    max-height: 300px;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 1rem;
+    border-radius: 5px;
+    margin: 0.5rem 0;
+    font-family: 'Courier New', monospace;
+}
+
+.response-text .error-box {
+    background: #fee;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    border-left: 3px solid #e53935;
+    color: #c62828;
 }
 
 /* Modal */
