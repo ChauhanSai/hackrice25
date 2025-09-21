@@ -54,6 +54,7 @@ if (recognition) {
     console.log("Stopped listening");
     console.log("Transcript:", transcript);
     processQuery(transcript)      // api call to pegasus
+    processVideoQuery(transcript)       // api call to merango
   };
 
   voiceBtn.onclick = () => {
@@ -366,6 +367,25 @@ async function processQuery(query) {
     }
 }
 
+async function processVideoQuery(query) {
+    try {
+        const response = await fetch('http://localhost:5001/merango', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                query: query,
+            })
+        });
+        
+        const data = await response.json();
+        console.log("Response:", data);
+        
+    } catch (error) {
+        console.log("Error:", error);
+    }
+}
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
     // Space bar to toggle voice recording

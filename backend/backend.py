@@ -65,7 +65,8 @@ def getResponse():
 @app.route('/merango', methods = ['POST'])
 def getMerangoResponse():
     try:
-        query = request.args.get('query')
+        json_data = request.json()
+        query = json_data.get('query') if json_data else None
     except:
         query = None
     
@@ -86,6 +87,7 @@ def getMerangoResponse():
         #adjust_confidence_level=0.5
     )
     print("Going to print response")
+    print(merango_response.items[0])
     print(merango_response.items[0].clips[0])
     res = merango_response.items[0].clips[0]  # top most clip
     response_dict = {
