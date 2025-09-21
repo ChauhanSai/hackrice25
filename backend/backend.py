@@ -5,6 +5,7 @@ import os
 from twelvelabs.tasks import TasksRetrieveResponse
 from dotenv import load_dotenv
 import requests
+from google.cloud import storage
 load_dotenv()
 
 client = TwelveLabs(api_key=os.getenv('TWELVELABS_API_KEY'))
@@ -160,6 +161,84 @@ def sendquiz():
 
     # print("Flask API is returning", response)
     return jsonify(quiz)
+
+
+@app.route('/upload', methods=['POST'])
+def upload_video():
+    try:
+        index = request.args.get('i')
+    except:
+        index = None
+
+    if index is None:
+        return {"error": "Missing 'index' parameter"}
+
+    if 'file' not in request.files:
+        return {"error": "No file part in the request"}
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return {"error": "No selected file"}
+
+    if file:
+        os.getenv("GOOGLE-CLOUD-JSON-ABS-PATH")
+        GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE-CLOUD-JSON-ABS-PATH")
+        bucket_name, source_file_name, destination_blob_name = "hackrice-2025", file, file.filename
+        storage_client = storage.Client(project="rice-hackathon25iah-613")
+
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(destination_blob_name)
+
+        # Upload file
+        blob.upload_from_file(file, content_type=file.content_type)
+
+        # Make public
+        blob.make_public()
+
+        # Return the public URL
+        print("Initial Public URL:", blob.public_url)
+
+        url = "https://api.twelvelabs.io/v1.3/tasks"
+
+        files_payload = {
+            "video_url": blob.public_url,
+        }
+        payload = {
+            "video_url": blob.public_url,
+            "index_id": index,
+        }
+        headers = {"x-api-key": os.getenv('TWELVELABS_API_KEY')}
+
+        response = requests.post(url, files=files_payload, data=payload, headers=headers)
+
+        print("Twelvelabs Video ID:", response.json()['video_id'])
+        new_blob_name = response.json()['video_id'] + destination_blob_name[destination_blob_name.rfind('.'):]
+
+        blob = bucket.blob(destination_blob_name)
+
+        # Copy the blob to the new name with metadata (including content_type)
+        new_blob = bucket.copy_blob(
+            blob,
+            bucket,
+            new_blob_name,
+            preserve_acl=True  # optional: keep ACLs
+        )
+
+        # Ensure content_type is set on the new blob
+        if blob.content_type:
+            new_blob.content_type = blob.content_type
+            new_blob.patch()  # updates metadata in GCS
+
+        # Delete the old blob
+        blob.delete()
+
+        # Make public
+        new_blob.make_public()
+
+        print("Final Public URL:", new_blob.public_url)
+
+        return {"url": new_blob.public_url, "video_id": response.json()['video_id']}
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
