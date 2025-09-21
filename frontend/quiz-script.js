@@ -61,6 +61,7 @@ let selectedAnswer = null;
 let hintsUsed = 0;
 let correctAnswers = 0;
 let incorrectAnswers = 0;
+let heartsRemaining = 3;
 
 // DOM Elements
 const loadingContentEl = document.getElementById('loadingContent');
@@ -78,6 +79,13 @@ const heart1El = document.getElementById('heart1');
 const heart2El = document.getElementById('heart2');
 const heart3El = document.getElementById('heart3');
 
+// Modal elements
+const answerModalEl = document.getElementById('answerModal');
+const modalIconEl = document.getElementById('modalIcon');
+const modalTitleEl = document.getElementById('modalTitle');
+const modalMessageEl = document.getElementById('modalMessage');
+const modalBtnEl = document.getElementById('modalBtn');
+
 let hearts = [heart1El, heart2El, heart3El];
 
 function initializeQuiz() {
@@ -87,6 +95,13 @@ function initializeQuiz() {
     hintsUsed = 0;
     correctAnswers = 0;
     incorrectAnswers = 0;
+    heartsRemaining = 3;
+    
+    // Reset hearts
+    hearts.forEach(heart => {
+        heart.classList.remove('lost');
+        heart.style.filter = '';
+    });
     
     updateUI();
     loadQuestion();
@@ -95,6 +110,7 @@ function initializeQuiz() {
 function setupEventListeners() {
     hintBtnEl.addEventListener('click', showHint);
     nextBtnEl.addEventListener('click', nextQuestion);
+    modalBtnEl.addEventListener('click', closeModal);
     
     // Add keyboard support
     document.addEventListener('keydown', handleKeyPress);
@@ -138,9 +154,9 @@ function loadQuestion() {
         optionsContainerEl.appendChild(optionEl);
     });
     
-    // Update hint button
-    hintBtnEl.style.display = 'flex';
+    // Reset hint button
     hintBtnEl.disabled = false;
+    hintBtnEl.style.opacity = '1';
     
     // Animate in
     questionCardEl.style.animation = 'none';
@@ -329,48 +345,36 @@ function showClip(timingData) {
         </div>
     `;
 
-
     setupClipPlayer(timingData.video_id, startTime, endTime);
 
     responseArea.style.display = 'block';
     responseArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-function nextQuestion() {
-    if (selectedAnswer === null) return;
+function showModal(isCorrect) {
+    const modalOverlay = document.getElementById('answerModal');
+    const modalIcon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
     
-    const question = quizQuestions[currentQuestionIndex];
-    console.log(selectedAnswer);
-    console.log(question.options[selectedAnswer]);
-    console.log(question.correct);
-    const isCorrect = question.options[selectedAnswer] === question.correct;
-
-    // Show correct/incorrect states
-    showAnswerFeedback(isCorrect);
-
-    // Update score and stats
     if (isCorrect) {
-        score++;
-        correctAnswers++;
+        modalIcon.className = 'modal-icon correct fas fa-check-circle';
+        modalTitle.textContent = 'You got it correct!';
+        modalMessage.textContent = 'Great job! Your memory is serving you well.';
     } else {
-        incorrectAnswers++;
-        // Remove a heart
-        if(hearts.length > 0) {
-            removeHeart = hearts.pop();
-            removeHeart.style.filter = "opacity(25%)";  // 50% brightness
-        } else {
-            // No hearts left, end quiz early
-            alert('You have no hearts left! The quiz will end now.');
-        }
+        modalIcon.className = 'modal-icon incorrect fas fa-times-circle';
+        modalTitle.textContent = 'You got it wrong';
+        modalMessage.textContent = 'Try using the hint to refresh your memory!';
     }
+    
+    modalOverlay.classList.add('show');
+}
 
-    const responseArea = document.getElementById("hintCard");
-    responseArea.style.display = 'none';
-
-    // Save progress
-    saveProgress();
-
-    // Wait for feedback animation, then proceed
+function closeModal() {
+    const modalOverlay = document.getElementById('answerModal');
+    modalOverlay.classList.remove('show');
+    
+    // Continue with the next question or show results
     setTimeout(() => {
         currentQuestionIndex++;
 
@@ -382,19 +386,65 @@ function nextQuestion() {
             showResults();
             localStorage.removeItem('quizProgress'); // Clear saved progress
         }
-    }, 2000);
+    }, 300);
+}
+
+function nextQuestion() {
+    if (selectedAnswer === null) return;
+    
+    const question = quizQuestions[currentQuestionIndex];
+    console.log(selectedAnswer);
+    console.log(question.options[selectedAnswer]);
+    console.log(question.correct);
+    
+    // Find the index of the correct answer
+    const correctIndex = question.options.findIndex(option => option === question.correct);
+    const isCorrect = selectedAnswer === correctIndex;
+
+    // Show correct/incorrect states
+    showAnswerFeedback(isCorrect);
+
+    // Update score and stats
+    if (isCorrect) {
+        score++;
+        correctAnswers++;
+    } else {
+        incorrectAnswers++;
+        // Remove a heart
+        if (heartsRemaining > 0) {
+            heartsRemaining--;
+            const heartToRemove = hearts[heartsRemaining];
+            heartToRemove.style.filter = "opacity(25%)";
+        } else {
+            // No hearts left, end quiz early
+            alert('You have no hearts left! The quiz will end now.');
+        }
+    }
+
+    // Hide hint card
+    const responseArea = document.getElementById("hintCard");
+    responseArea.style.display = 'none';
+
+    // Save progress
+    saveProgress();
+
+    // Show modal after a brief delay to see the answer feedback
+    setTimeout(() => {
+        showModal(isCorrect);
+    }, 1500);
 }
 
 function showAnswerFeedback(isCorrect) {
     const question = quizQuestions[currentQuestionIndex];
     const options = document.querySelectorAll('.option-btn');
+    const correctIndex = question.options.findIndex(option => option === question.correct);
     
     // Disable all options
     options.forEach((btn, index) => {
         btn.classList.add('disabled');
         btn.style.pointerEvents = 'none';
         
-        if (index === question.correct) {
+        if (index === correctIndex) {
             btn.classList.add('correct');
         } else if (index === selectedAnswer && !isCorrect) {
             btn.classList.add('incorrect');
@@ -404,37 +454,6 @@ function showAnswerFeedback(isCorrect) {
     // Disable buttons
     nextBtnEl.disabled = true;
     hintBtnEl.style.display = 'none';
-    
-    // Show feedback message
-    const feedbackEl = document.createElement('div');
-    feedbackEl.className = `feedback-message ${isCorrect ? 'correct' : 'incorrect'}`;
-    feedbackEl.innerHTML = `
-        <i class="fas fa-${isCorrect ? 'check-circle' : 'times-circle'}"></i>
-        <span>${isCorrect ? 'Correct!' : 'Incorrect. The correct answer is highlighted.'}</span>
-    `;
-    
-    feedbackEl.style.cssText = `
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 1rem;
-        margin-top: 1rem;
-        border-radius: 10px;
-        background: ${isCorrect ? 'rgba(74, 222, 128, 0.2)' : 'rgba(239, 68, 68, 0.2)'};
-        color: ${isCorrect ? 'var(--success)' : 'var(--error)'};
-        border: 1px solid ${isCorrect ? 'var(--success)' : 'var(--error)'};
-        animation: fadeIn 0.5s ease-out;
-    `;
-    
-    questionCardEl.appendChild(feedbackEl);
-    
-    // Update next button
-    setTimeout(() => {
-        nextBtnEl.disabled = false;
-        nextBtnEl.innerHTML = currentQuestionIndex === quizQuestions.length - 1 
-            ? '<i class="fas fa-trophy"></i> View Results'
-            : 'Next Question <i class="fas fa-arrow-right"></i>';
-    }, 1000);
 }
 
 function showResults() {
@@ -445,7 +464,7 @@ function showResults() {
     // Update results
     document.getElementById('finalScore').textContent = score;
     document.getElementById('correctCount').textContent = correctAnswers;
-    document.getElementById('incorrectCount').textContent = incorrectAnswers;
+    document.getElementById('heartsRemaining').textContent = heartsRemaining;
     document.getElementById('hintsUsed').textContent = hintsUsed;
     
     // Update score message
@@ -510,34 +529,6 @@ function restartQuiz() {
     initializeQuiz();
 }
 
-// Add confetti animation
-const confettiStyle = document.createElement('style');
-confettiStyle.textContent = `
-    @keyframes confetti-fall {
-        0% {
-            transform: translateY(-10px) rotate(0deg);
-            opacity: 1;
-        }
-        100% {
-            transform: translateY(100vh) rotate(360deg);
-            opacity: 0;
-        }
-    }
-    
-    @keyframes ripple {
-        0% {
-            transform: scale(0);
-            opacity: 1;
-        }
-        100% {
-            transform: scale(4);
-            opacity: 0;
-        }
-    }
-`;
-
-document.head.appendChild(confettiStyle);
-
 // Touch gestures for mobile
 let touchStartX = 0;
 let touchStartY = 0;
@@ -571,7 +562,8 @@ function saveProgress() {
         score,
         hintsUsed,
         correctAnswers,
-        incorrectAnswers
+        incorrectAnswers,
+        heartsRemaining
     };
     localStorage.setItem('quizProgress', JSON.stringify(progress));
 }
@@ -588,6 +580,13 @@ function loadProgress() {
                 hintsUsed = progress.hintsUsed;
                 correctAnswers = progress.correctAnswers;
                 incorrectAnswers = progress.incorrectAnswers;
+                heartsRemaining = progress.heartsRemaining || 3;
+                
+                // Update hearts display
+                for (let i = heartsRemaining; i < 3; i++) {
+                    hearts[i].style.filter = "opacity(25%)";
+                }
+                
                 updateUI();
                 loadQuestion();
                 return true;
