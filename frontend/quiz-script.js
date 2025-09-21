@@ -103,6 +103,11 @@ function initializeQuiz() {
         heart.style.filter = '';
     });
     
+    // Disable hint button initially until quiz loads
+    hintBtnEl.disabled = true;
+    hintBtnEl.style.opacity = '0.5';
+    hintBtnEl.innerHTML = '<i class="fas fa-lightbulb"></i> Loading...';
+    
     updateUI();
     loadQuestion();
 }
@@ -154,9 +159,15 @@ function loadQuestion() {
         optionsContainerEl.appendChild(optionEl);
     });
     
-    // Reset hint button
-    hintBtnEl.disabled = false;
-    hintBtnEl.style.opacity = '1';
+    // Reset hint button - always visible, only disable if already used for this question
+    hintBtnEl.style.display = 'flex';
+    // Only reset hint button if we're loading a new question (not if it was already disabled)
+    if (!hintBtnEl.hasAttribute('data-used-for-question') || 
+        hintBtnEl.getAttribute('data-used-for-question') != currentQuestionIndex) {
+        hintBtnEl.disabled = false;
+        hintBtnEl.style.opacity = '1';
+        hintBtnEl.removeAttribute('data-used-for-question');
+    }
     
     // Animate in
     questionCardEl.style.animation = 'none';
@@ -224,29 +235,50 @@ function addRippleEffect(element) {
 }
 
 async function showHint() {
+    // Prevent multiple clicks while loading
+    if (hintBtnEl.disabled) return;
+    
+    // Immediately disable the button to prevent multiple clicks
+    hintBtnEl.disabled = true;
+    hintBtnEl.style.opacity = '0.5';
+    hintBtnEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    
     const question = quizQuestions[currentQuestionIndex];
 
     // Use the question text as the query
     const query = question.question;
     console.log("Sending query to Merango:", query);
 
-    // Call your backend to get timing data (start/end, video_id, etc.)
-    const timingData = await processVideoQuery(query);
+    try {
+        // Call your backend to get timing data (start/end, video_id, etc.)
+        const timingData = await processVideoQuery(query);
 
-    if (!timingData) {
-        console.error("No timing data returned for query:", query);
-        return;
+        if (!timingData) {
+            console.error("No timing data returned for query:", query);
+            // Reset button if error occurs
+            hintBtnEl.innerHTML = '<i class="fas fa-lightbulb"></i> Get Hint';
+            hintBtnEl.disabled = false;
+            hintBtnEl.style.opacity = '1';
+            return;
+        }
+
+        // Now reuse showClip to populate response area
+        showClip(timingData);
+
+        // Track hints used
+        hintsUsed++;
+
+        // Keep button disabled and mark as used for this question
+        hintBtnEl.innerHTML = '<i class="fas fa-lightbulb"></i> Hint Used';
+        hintBtnEl.setAttribute('data-used-for-question', currentQuestionIndex);
+        
+    } catch (error) {
+        console.error("Error loading hint:", error);
+        // Reset button if error occurs
+        hintBtnEl.innerHTML = '<i class="fas fa-lightbulb"></i> Get Hint';
+        hintBtnEl.disabled = false;
+        hintBtnEl.style.opacity = '1';
     }
-
-    // Now reuse showClip to populate response area
-    showClip(timingData);
-
-    // Track hints used
-    hintsUsed++;
-
-    // Disable hint button
-    hintBtnEl.disabled = true;
-    hintBtnEl.style.opacity = '0.5';
 }
 
 function formatTime(seconds) {
@@ -451,9 +483,9 @@ function showAnswerFeedback(isCorrect) {
         }
     });
     
-    // Disable buttons
+    // Keep both buttons visible but disable next button temporarily
     nextBtnEl.disabled = true;
-    hintBtnEl.style.display = 'none';
+    // Don't hide hint button, just keep it in its state (enabled/disabled)
 }
 
 function showResults() {
