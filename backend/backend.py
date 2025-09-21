@@ -6,6 +6,7 @@ from twelvelabs.tasks import TasksRetrieveResponse
 from dotenv import load_dotenv
 import requests
 from google.cloud import storage
+import base64
 load_dotenv()
 
 client = TwelveLabs(api_key=os.getenv('TWELVELABS_API_KEY'))
@@ -161,6 +162,60 @@ def sendquiz():
     # print("Flask API is returning", response)
     return jsonify(quiz)
 
+
+@app.route('/download_zoom_recording', methods=['GET'])
+def download_zoom_recording():
+    try:
+        meeting_id = request.args.get('id')
+    except:
+        meeting_id = None
+
+    if meeting_id is None:
+        return {"error": "Missing 'meeting_id' parameter"}
+
+    CLIENT_ID = os.getenv('ZOOM_CLIENT_ID')
+    CLIENT_SECRET = os.getenv('ZOOM_CLIENT_SECRET')
+    ACCOUNT_ID = os.getenv('ZOOM_ACCOUNT_ID')
+
+    auth_str = f"{CLIENT_ID}:{CLIENT_SECRET}"
+    b64_auth_str = base64.b64encode(auth_str.encode()).decode()
+
+    url = f"https://zoom.us/oauth/token?grant_type=account_credentials&account_id={ACCOUNT_ID}"
+
+    r = requests.post(url, headers={"Authorization": f"Basic {b64_auth_str}"})
+    print(r.status_code, r.text)
+    data = r.json()
+    print(data)
+    # Example response: {"access_token": "xxx", "token_type": "bearer", "expires_in": 3599}
+    ACCESS_TOKEN = data['access_token']
+
+    ZOOM_TOKEN = ACCESS_TOKEN
+    headers = {
+        'Authorization': f'Bearer {ZOOM_TOKEN}',
+    }
+    url = f'https://api.zoom.us/v2/meetings/{meeting_id}/recordings'
+
+    r = requests.get(url, headers=headers)
+
+    if r.status_code != 200:
+        return {"error": f"Failed to fetch recordings: {r.status_code}, {r.text}"}
+
+    recordings = r.json()
+    if 'recording_files' not in recordings or len(recordings['recording_files']) == 0:
+        return {"error": "No recording files found for this meeting"}
+
+    recordings_list = recordings['recording_files']
+
+    # Option 1: Use duration if available
+    if all('duration' in f for f in recordings_list):
+        recording_file = max(recordings_list, key=lambda f: f['duration'])
+    else:
+        # Fallback: use file_size
+        recording_file = max(recordings_list, key=lambda f: f['file_size'])
+
+    download_url = recording_file['download_url'] + f"?access_token={ZOOM_TOKEN}"
+
+    return {"download_url": download_url}
 
 @app.route('/upload', methods=['POST'])
 def upload_video():
