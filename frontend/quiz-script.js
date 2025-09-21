@@ -207,29 +207,133 @@ function addRippleEffect(element) {
     }, 600);
 }
 
-function showHint() {
+async function showHint() {
     const question = quizQuestions[currentQuestionIndex];
-    
-    // Update hint content
-    const videoSegmentEl = hintCardEl.querySelector('.video-segment p');
-    const hintTextEl = hintCardEl.querySelector('.hint-text');
-    
-    videoSegmentEl.textContent = question.videoSegment;
-    hintTextEl.textContent = question.hint;
-    
-    // Show hint card with animation
-    hintCardEl.style.display = 'block';
-    hintCardEl.style.animation = 'fadeIn 0.5s ease-out';
-    
+
+    // Use the question text as the query
+    const query = question.question;
+    console.log("Sending query to Merango:", query);
+
+    // Call your backend to get timing data (start/end, video_id, etc.)
+    const timingData = await processVideoQuery(query);
+
+    if (!timingData) {
+        console.error("No timing data returned for query:", query);
+        return;
+    }
+
+    // Now reuse showClip to populate response area
+    showClip(timingData);
+
+    // Track hints used
+    hintsUsed++;
+
     // Disable hint button
     hintBtnEl.disabled = true;
     hintBtnEl.style.opacity = '0.5';
-    
-    // Track hints used
-    hintsUsed++;
-    
-    // Scroll to hint
-    hintCardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function formatDuration(seconds) {
+    return `${Math.round(seconds)}s`;
+}
+
+async function processVideoQuery(query) {    // for merango
+    try {
+        const response = await fetch('http://localhost:5001/merango', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                query: query,
+            })
+        });
+
+        const data = await response.json();
+        console.log("Response:", data);
+        return data;
+
+    } catch (error) {
+        console.log("Error:", error);
+        return null;
+    }
+}
+
+function setupClipPlayer(videoId, startTime, endTime) {       // Setting ts up
+    const video = document.getElementById('clipPlayer');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+
+    video.addEventListener('loadeddata', () => {
+        video.currentTime = startTime;
+
+        // Custom play/pause control
+        playPauseBtn.onclick = () => {
+            if (video.paused) {
+                video.play();
+                playPauseBtn.textContent = '⏸️ Pause';
+            } else {
+                video.pause();
+                playPauseBtn.textContent = '▶️ Play';
+            }
+        };
+
+        // Enforce time boundaries
+        video.addEventListener('timeupdate', () => {
+            if (video.currentTime >= endTime) {
+                video.currentTime = startTime;
+                video.pause();
+                playPauseBtn.textContent = '▶️ Play';
+            }
+        });
+
+        // Prevent seeking outside range
+        video.addEventListener('seeking', () => {
+            if (video.currentTime < startTime || video.currentTime > endTime) {
+                video.currentTime = startTime;
+            }
+        });
+    });
+
+    video.src = `https://storage.googleapis.com/hackrice-2025/68cecac9ca672ec899e15fe7.mp4`;
+}
+
+function showClip(timingData) {
+    const responseArea = document.getElementById("hintCard");
+    const responseText = document.querySelector('.response-text p');
+    const videoPlaceholder = document.querySelector('.video-placeholder');
+
+    // Update text
+    responseText.innerHTML = `
+        <p><strong>🎯 Found it!</strong> Here's the exact moment from your visit:</p>
+        <p><small>${formatTime(timingData.start)} - ${formatTime(timingData.end)}</small></p>
+    `;
+
+    // Create vid player with start and end
+    const startTime = timingData.start;
+    const endTime = timingData.end;
+    const duration = endTime - startTime;
+
+    videoPlaceholder.innerHTML = `
+        <video id="clipPlayer" controls style="width: 100%; max-width: 400px; border-radius: 10px;">
+            <source src="https://storage.googleapis.com/hackrice-2025/68cecac9ca672ec899e15fe7.mp4" type="video/mp4">
+        </video>
+        <div style="text-align: center; margin-top: 0.5rem; color: #666;">
+            <small>${formatDuration(duration)}</small>
+            <br>
+        </div>
+    `;
+
+
+    setupClipPlayer(timingData.video_id, startTime, endTime);
+
+    responseArea.style.display = 'block';
+    responseArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function nextQuestion() {
@@ -258,8 +362,10 @@ function nextQuestion() {
             // No hearts left, end quiz early
             alert('You have no hearts left! The quiz will end now.');
         }
-        }
+    }
 
+    const responseArea = document.getElementById("hintCard");
+    responseArea.style.display = 'none';
 
     // Save progress
     saveProgress();

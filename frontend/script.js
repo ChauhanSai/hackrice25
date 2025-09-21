@@ -376,7 +376,7 @@ async function processQuery(query) {     // for pegasus
             },
             body: JSON.stringify({
                 query: query,
-                video_id: "68cebe834fc8dabea3205624"
+                video_id: video
             })
         });
         
@@ -409,6 +409,7 @@ async function processVideoQuery(query) {    // for merango
         return null;
     }
 }
+
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
     // Space bar to toggle voice recording
