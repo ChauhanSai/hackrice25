@@ -173,12 +173,10 @@ def upload_video():
     if index is None:
         return {"error": "Missing 'index' parameter"}
 
-    print(request.files)
     if 'file' not in request.files:
         return {"error": "No file part in the request"}
 
     file = request.files['file']
-    print(file)
 
     if file.filename == '':
         return {"error": "No selected file"}
