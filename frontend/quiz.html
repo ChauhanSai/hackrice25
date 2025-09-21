@@ -25,6 +25,16 @@
         </div>
     </nav>
 
+    <!-- Modal for answer feedback -->
+    <div class="modal-overlay" id="answerModal">
+        <div class="modal">
+            <i class="modal-icon" id="modalIcon"></i>
+            <h3 id="modalTitle"></h3>
+            <p id="modalMessage"></p>
+            <button class="modal-btn" id="modalBtn">Continue</button>
+        </div>
+    </div>
+
     <section class="quiz-header">
         <div class="container">
             <h1>Memory Assessment Quiz</h1>
@@ -87,7 +97,6 @@
                         <p>Based on your question, here's what your doctor said...</p>
                     </div>
                 </div>
-                </div>
 
                 <!-- Results Card -->
                 <div class="results-card" id="resultsCard" style="display: none;">
@@ -108,7 +117,7 @@
                             </div>
                             <div class="breakdown-item">
                                 <i class="fas fa-heart"></i>
-                                <span>Hearts Remaining: <strong id="heartsRemaining">0</strong></span>
+                                <span>Hearts Remaining: <strong id="heartsRemaining">3</strong></span>
                             </div>
                             <div class="breakdown-item">
                                 <i class="fas fa-lightbulb"></i>
