@@ -106,7 +106,7 @@ function initializeQuiz() {
     // Disable hint button initially until quiz loads
     hintBtnEl.disabled = true;
     hintBtnEl.style.opacity = '0.5';
-    hintBtnEl.innerHTML = '<i class="fas fa-lightbulb"></i> Loading...';
+    hintBtnEl.innerHTML = '<i class="fas fa-lightbulb"></i> Get Hint';
     
     updateUI();
     loadQuestion();
@@ -151,7 +151,7 @@ function loadQuestion() {
     
     // Update question text
     questionTextEl.textContent = question.question;
-    
+
     // Clear and populate options
     optionsContainerEl.innerHTML = '';
     question.options.forEach((option, index) => {
@@ -167,6 +167,7 @@ function loadQuestion() {
         hintBtnEl.disabled = false;
         hintBtnEl.style.opacity = '1';
         hintBtnEl.removeAttribute('data-used-for-question');
+        hintBtnEl.innerHTML = '<i class="fas fa-lightbulb"></i> Get Hint';
     }
     
     // Animate in
