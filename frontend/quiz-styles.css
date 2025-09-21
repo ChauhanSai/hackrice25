@@ -120,7 +120,7 @@ body.dark-mode {
     margin-bottom: 2rem;
 }
 
-/* Hearts System - NEW */
+/* Hearts System */
 .hearts-container {
     display: flex;
     justify-content: center;
@@ -152,7 +152,7 @@ body.dark-mode {
     100% { transform: scale(1); }
 }
 
-/* Progress Bar - Updated to start at 0% */
+/* Progress Bar */
 .progress-container {
     margin-bottom: 3rem;
     max-width: 800px;
@@ -312,12 +312,13 @@ body.dark-mode {
     background: var(--error);
 }
 
-/* Action Buttons */
+/* Action Buttons - FIXED POSITIONS */
 .question-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
+    min-height: 60px; /* Ensure consistent height */
 }
 
 .hint-btn, .next-btn {
@@ -331,6 +332,7 @@ body.dark-mode {
     cursor: pointer;
     transition: all 0.3s ease;
     border: none;
+    position: relative; /* Keep in place */
 }
 
 .hint-btn {
@@ -343,6 +345,11 @@ body.dark-mode {
     border-color: var(--warning);
     color: var(--warning);
     background: rgba(245, 158, 11, 0.1);
+}
+
+.hint-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .next-btn {
@@ -364,6 +371,88 @@ body.dark-mode {
     box-shadow: 0 8px 20px rgba(136, 201, 153, 0.4);
 }
 
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: var(--bg-card);
+    border-radius: 25px;
+    padding: 3rem;
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+    border: 2px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    transform: scale(0.8);
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.show .modal {
+    transform: scale(1);
+}
+
+.modal-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.modal-icon.correct {
+    color: var(--success);
+}
+
+.modal-icon.incorrect {
+    color: var(--error);
+}
+
+.modal h3 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.modal p {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.modal-btn {
+    background: var(--primary-matcha);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modal-btn:hover {
+    background: var(--dark-matcha);
+    transform: translateY(-2px);
+}
+
 /* Hint Card */
 .hint-card {
     background: var(--bg-card);
@@ -377,7 +466,7 @@ body.dark-mode {
     margin-right: auto;
 }
 
-.hint-header {
+.response-header {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -429,6 +518,48 @@ body.dark-mode {
     font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 2rem;
+    color: var(--text-primary);
+}
+
+.results-breakdown {
+    margin-bottom: 2rem;
+}
+
+.breakdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+}
+
+.results-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.retry-btn, .home-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.retry-btn {
+    background: var(--primary-matcha);
+    color: white;
+}
+
+.home-btn {
+    background: var(--deep-matcha);
     color: var(--text-primary);
 }
 
@@ -510,4 +641,35 @@ body.dark-mode {
         width: 100%;
         justify-content: center;
     }
+    
+    .modal {
+        padding: 2rem;
+    }
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-10px) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
