@@ -73,10 +73,10 @@ def getMerangoResponse():
     
     response = gemini_client.models.generate_content(
         model="gemini-2.5-flash",
-        contents=f"Extract the core broad keyword from this query as a single word/phrase (e.g., 'what medicine should I take' → 'medicine'). Output only that. Query: {query}",
+        contents=f"Extract the core broad keywords from this query as a 1-3 word/phrase with the Five Ws context (Example: 'what medicine should I take' → 'what medicine' or 'how often should I take my medicine' → 'when take medicine' or 'what are some side effects of ___' → 'side effects' or 'what is the purpose of the medication' → 'medication purpose'). Query: {query}",
     )
     result = response.text
-    print(result)
+    print("Gemini says", result)
     merango_response = client.search.query(
         index_id=os.getenv("MERANGO_INDEX"),
         search_options=["visual", "audio"],
@@ -85,9 +85,8 @@ def getMerangoResponse():
         operator="or",
         page_limit=5,
         sort_option="score",
-        #adjust_confidence_level=0.5
+        adjust_confidence_level=0.1
     )
-    print("Going to print response")
     print(merango_response.items[0])
     print(merango_response.items[0].clips[0])
     res = merango_response.items[0].clips[0]  # top most clip

@@ -370,7 +370,7 @@ function showClip(timingData) {
 
     videoPlaceholder.innerHTML = `
         <video id="clipPlayer" controls style="width: 100%; max-width: 400px; border-radius: 10px;">
-            <source src="https://storage.googleapis.com/hackrice-2025/68cecac9ca672ec899e15fe7.mp4" type="video/mp4">
+            <source src="https://storage.googleapis.com/hackrice-2025/${video}.mp4" type="video/mp4">
         </video>
         <div style="text-align: center; margin-top: 0.5rem; color: #666;">
             <small>${formatDuration(duration)}</small>
