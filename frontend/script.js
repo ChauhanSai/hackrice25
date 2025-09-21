@@ -45,7 +45,7 @@ if (recognition) {
     voiceStatus.textContent = "Error: " + event.error;
   };
 
-  recognition.onend = () => {
+  recognition.onend = async () => {
     listening = false;
     micIcon.classList.remove("fa-stop");
     micIcon.classList.add("fa-microphone");
@@ -54,7 +54,10 @@ if (recognition) {
     console.log("Stopped listening");
     console.log("Transcript:", transcript);
     processQuery(transcript)      // api call to pegasus
-    processVideoQuery(transcript)       // api call to merango
+    const res = await processVideoQuery(transcript);       // api call to merango
+    if (res) {
+        showClip(res); 
+    } 
   };
 
   voiceBtn.onclick = () => {
@@ -74,51 +77,86 @@ if (recognition) {
 }
 
 
-
-async function processQueryWithTwelveLabs(query, audioBlob) {
-    // This is where you'd integrate with Twelve Labs API
-    // Example implementation:
-
-    try {
-        // 1. Upload audio file to your server
-        const uploadResult = await uploadAudioToServer(audioBlob, window.lastRecording.filename);
-
-        if (uploadResult) {
-            // 2. Send query to Twelve Labs API
-            const searchResult = await searchVideoWithQuery(query);
-
-            // 3. Process results
-            if (searchResult) {
-                displayVideoResults(searchResult);
-            }
-        }
-
-    } catch (error) {
-        console.error('Error processing with Twelve Labs:', error);
-        //showNotification('Error processing your query. Please try again.', 'error');
-    }
+function showClip(timingData) {
+    const responseArea = document.getElementById("responseArea");
+    const responseText = document.querySelector('.response-text p');
+    const videoPlaceholder = document.querySelector('.video-placeholder');
+    
+    // Update text
+    responseText.innerHTML = `
+        <p><strong>🎯 Found it!</strong> Here's the exact moment from your visit:</p>
+        <p><small>${formatTime(timingData.start)} - ${formatTime(timingData.end)}</small></p>
+    `;
+    
+    // Create vid player with start and end
+    const startTime = timingData.start;
+    const endTime = timingData.end;
+    const duration = endTime - startTime;
+    
+    videoPlaceholder.innerHTML = `
+        <video id="clipPlayer" controls style="width: 100%; max-width: 400px; border-radius: 10px;">
+            <source src="https://storage.googleapis.com/hackrice-2025/68cecac9ca672ec899e15fe7.mp4" type="video/mp4">
+        </video>
+        <div style="text-align: center; margin-top: 0.5rem; color: #666;">
+            <small>${formatDuration(duration)}</small>
+            <br>
+        </div>
+    `;
+    
+    
+    setupClipPlayer(timingData.video_id, startTime, endTime);
+    
+    responseArea.style.display = 'block';
+    responseArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-async function searchVideoWithQuery(query) {
-    // Placeholder for Twelve Labs API integration
-    // This would be implemented with your backend API
-
-    const response = await fetch('/api/search-video', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            query: query,
-            audioFile: window.lastRecording?.filename
-        })
+function setupClipPlayer(videoId, startTime, endTime) {       // Setting ts up
+    const video = document.getElementById('clipPlayer');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    
+    video.addEventListener('loadeddata', () => {
+        video.currentTime = startTime;
+        
+        // Custom play/pause control
+        playPauseBtn.onclick = () => {
+            if (video.paused) {
+                video.play();
+                playPauseBtn.textContent = '⏸️ Pause';
+            } else {
+                video.pause();
+                playPauseBtn.textContent = '▶️ Play';
+            }
+        };
+        
+        // Enforce time boundaries
+        video.addEventListener('timeupdate', () => {
+            if (video.currentTime >= endTime) {
+                video.currentTime = startTime;
+                video.pause();
+                playPauseBtn.textContent = '▶️ Play';
+            }
+        });
+        
+        // Prevent seeking outside range
+        video.addEventListener('seeking', () => {
+            if (video.currentTime < startTime || video.currentTime > endTime) {
+                video.currentTime = startTime;
+            }
+        });
     });
+    
+    video.src = `https://storage.googleapis.com/hackrice-2025/68cecac9ca672ec899e15fe7.mp4`;
+}
 
-    if (response.ok) {
-        return await response.json();
-    }
+// Helpers to format time
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
 
-    return null;
+function formatDuration(seconds) {
+    return `${Math.round(seconds)}s`;
 }
 
 function displayVideoResults(results) {
@@ -297,21 +335,6 @@ function enhanceFileProcessing() {
     }, 200);
 }
 
-// Simulate AI thinking for voice queries
-function simulateAIThinking() {
-    voiceBtn.classList.add('processing');
-    voiceStatus.textContent = 'Processing...';
-
-    queryDisplay.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--primary-peach);">
-            <i class="fas fa-brain"></i>
-            <span>AI is analyzing your question...</span>
-            <div class="loading-dots">
-                <span>.</span><span>.</span><span>.</span>
-            </div>
-        </div>
-    `;
-}
 
 // Add loading dots animation
 const loadingDotsStyle = document.createElement('style');
@@ -344,9 +367,7 @@ function enhancedProcessQuery(query) {
     }, 3000);
 }
 
-// window.processQuery = enhancedProcessQuery;     // removing because overriding process function
-
-async function processQuery(query) {
+async function processQuery(query) {     // for pegasus
     try {
         const response = await fetch('http://localhost:5001/pegasus', {
             method: 'POST',
@@ -367,7 +388,7 @@ async function processQuery(query) {
     }
 }
 
-async function processVideoQuery(query) {
+async function processVideoQuery(query) {    // for merango
     try {
         const response = await fetch('http://localhost:5001/merango', {
             method: 'POST',
@@ -381,9 +402,11 @@ async function processVideoQuery(query) {
         
         const data = await response.json();
         console.log("Response:", data);
+        return data;
         
     } catch (error) {
         console.log("Error:", error);
+        return null;
     }
 }
 // Keyboard shortcuts

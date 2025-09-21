@@ -40,7 +40,7 @@ app = Flask(__name__)
 load_dotenv()
 
 from flask_cors import CORS
-CORS(app)  # Enable CORS for all routes
+CORS(app, origins=["http://127.0.0.1:5500", "http://localhost:5500", "http://127.0.0.1:5000", "http://localhost:5000"])  # Enable CORS for specific origins
 
 @app.route('/pegasus', methods = ['POST'])
 def getResponse():
@@ -65,7 +65,7 @@ def getResponse():
 @app.route('/merango', methods = ['POST'])
 def getMerangoResponse():
     try:
-        json_data = request.json()
+        json_data = request.get_json()
         query = json_data.get('query') if json_data else None
     except:
         query = None
