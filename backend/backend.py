@@ -5,7 +5,7 @@ import os
 from twelvelabs.tasks import TasksRetrieveResponse
 from dotenv import load_dotenv
 import requests
-from google.cloud import storage
+from google.cloud import storage, texttospeech
 import base64
 import json
 from datetime import datetime

@@ -272,6 +272,29 @@ function initializeEventListeners() {
         // Simulate redirect to dark mode/quiz page
         window.location.href = 'quiz.html?i='+(index || '')+'&v='+(video || '');
     });
+
+    // Upload button directly opens file browser
+    uploadBtn.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    // Close modal button
+    closeModal.addEventListener('click', function() {
+        uploadModal.classList.remove('active');
+    });
+
+    // Prevent actual file input for faux upload
+    uploadArea.addEventListener('click', function() {
+        // Show faux progress
+        uploadArea.style.display = 'none';
+        uploadProgress.style.display = 'block';
+        // Simulate processing
+        setTimeout(() => {
+            uploadProgress.style.display = 'none';
+            uploadArea.style.display = 'flex';
+            uploadModal.classList.remove('active');
+        }, 2000);
+    });
 }
 
 // Scroll Effects

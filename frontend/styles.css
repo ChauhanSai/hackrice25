@@ -624,3 +624,8 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+.upload-area input[type="file"] {
+    display: none !important;
+    pointer-events: none;
+}

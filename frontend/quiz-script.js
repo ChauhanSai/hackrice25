@@ -7,6 +7,8 @@ const video = params.get("v");   // "68cecac9ca672ec899e15fe7"
 
 console.log("Index:", index);
 console.log("Video:", video);
+const loadingContentEl = document.getElementById('loadingContent');
+const questionContentEl = document.getElementById('questionContent');
 
 // Back to main page
 const moonToggle = document.getElementById('moonToggle');
@@ -31,6 +33,8 @@ fetch(url1)
   .then(data => {
     console.log("Transcript:", data);
     const transcript = data.transcript;
+    loadingContentEl.style.display = 'block';
+    questionContentEl.style.display = 'none';
 
     // Quiz questions
     return fetch(url2, {
@@ -64,8 +68,6 @@ let incorrectAnswers = 0;
 let heartsRemaining = 3;
 
 // DOM Elements
-const loadingContentEl = document.getElementById('loadingContent');
-const questionContentEl = document.getElementById('questionContent');
 const progressFillEl = document.getElementById('progressFill');
 const progressTextEl = document.getElementById('progressText');
 const questionCardEl = document.getElementById('questionCard');
@@ -631,6 +633,8 @@ function loadProgress() {
 
 // Load progress on page load
 document.addEventListener('DOMContentLoaded', function() {
+    loadingContentEl.style.display = 'block';
+    questionContentEl.style.display = 'none';
     if (!loadProgress()) {
         initializeQuiz();
     }
