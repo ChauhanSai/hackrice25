@@ -1,6 +1,9 @@
 # Doculabubu 🍵
 
 **Remember your telehealth visits, effortlessly.**
+
+### 🏆 Double first place submission to [HackRice 2025](https://devpost.com/software/matcha-bzrgx3)
+
 AI-powered telehealth assistant that helps you **remember and understand your doctor visits** through intelligent voice queries and video analysis.
 
 ---
